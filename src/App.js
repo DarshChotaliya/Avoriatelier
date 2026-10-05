@@ -1,23 +1,25 @@
-import logo from './logo.svg';
+import { useState } from 'react';
+import PurchaseList from './components/PurchaseList';
+import PurchaseForm from './components/PurchaseForm';
 import './App.css';
 
 function App() {
+  // view: { name: 'list' } | { name: 'form', id?: number }
+  const [view, setView] = useState({ name: 'list' });
+  const showList = () => setView({ name: 'list' });
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+    <div className="app">
+      <header className="app-header">
+        <button type="button" className="brand" onClick={showList}>Purchase Management</button>
       </header>
+      <main className="container">
+        {view.name === 'list' ? (
+          <PurchaseList onNew={() => setView({ name: 'form' })} onEdit={(id) => setView({ name: 'form', id })} />
+        ) : (
+          <PurchaseForm key={view.id ?? 'new'} purchaseId={view.id} onSaved={showList} onCancel={showList} />
+        )}
+      </main>
     </div>
   );
 }

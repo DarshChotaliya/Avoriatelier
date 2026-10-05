@@ -1,70 +1,75 @@
-# Getting Started with Create React App
+# Purchase Management
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Diamond / Gold / Silver purchase entry with GST totals.
 
-## Available Scripts
+| Layer    | Tech                                  | Folder   |
+|----------|---------------------------------------|----------|
+| Frontend | React (Create React App)              | `src/`   |
+| API      | ASP.NET Core 8 Web API + EF Core 8    | `api/`   |
+| Database | PostgreSQL, database name `purchase`  | migrations in `api/Data/Migrations` |
+| Tests    | xUnit (API), Jest (React)             | `tests/`, `src/**/*.test.js` |
 
-In the project directory, you can run:
+## Setup
 
-### `npm start`
+### 1. Database connection
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+The password is kept out of source control using .NET user-secrets:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```powershell
+cd api
+dotnet user-secrets set "ConnectionStrings:Purchase" "Host=localhost;Port=5432;Database=purchase;Username=postgres;Password=YOUR_PASSWORD"
+```
 
-### `npm test`
+### 2. Create the `purchase` database
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```powershell
+cd api
+dotnet ef database update
+```
 
-### `npm run build`
+This creates the `purchase` database (if missing) and the tables `purchase`, `purchase_diamond_item`,
+`purchase_gold_item` and `purchase_silver_item`.
+Requires the EF tool: `dotnet tool install -g dotnet-ef --version 8.0.11`.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 3. Run
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```powershell
+# Terminal 1 – API on http://localhost:5023 (Swagger: /swagger)
+cd api
+dotnet run
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+# Terminal 2 – React on http://localhost:3000 (proxies /api to the API)
+npm start
+```
 
-### `npm run eject`
+### Tests
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```powershell
+dotnet test Purchase.sln
+npm test
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## API
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+| Method | Route                          | Description                       |
+|--------|--------------------------------|-----------------------------------|
+| GET    | `/api/purchases?search=&type=` | List (search no./supplier/invoice) |
+| GET    | `/api/purchases/next-number`   | Next auto Purchase No. (`PUR-00001`) |
+| GET    | `/api/purchases/{id}`          | Purchase with line items          |
+| POST   | `/api/purchases`               | Create                            |
+| PUT    | `/api/purchases/{id}`          | Update (line items replaced)      |
+| DELETE | `/api/purchases/{id}`          | Delete                            |
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Calculations
 
-## Learn More
+All amounts are recalculated on the server (`api/Services/PurchaseCalculator.cs`); the React form mirrors the
+same logic (`src/utils/purchaseCalc.js`) for live display only.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- **Diamond:** Amount = Carat × Rate/Carat − Discount %
+- **Gold:** Net = Gross − Stone · Wastage Wt = Net × Wastage % · Chargeable = Net + Wastage Wt ·
+  Gold Value = Chargeable × Rate · Amount = Gold Value + Making + Other
+- **Silver:** Net = Gross − Stone/Other · Silver Value = Net × Rate · Amount = Silver Value + Making + Other
+- **Totals:** Gross = Σ item amounts · Taxable = Gross − Discount · CGST/SGST/IGST on Taxable ·
+  Net Purchase Amount = Taxable + taxes rounded to the nearest rupee (difference shown as Round Off)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Amounts are rounded to 2 decimals, weights to 3 decimals.

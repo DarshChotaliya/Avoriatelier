@@ -2,6 +2,7 @@
   "name": "purchase",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:5023",
   "dependencies": {
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^6.9.1",
