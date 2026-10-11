@@ -1,5 +1,6 @@
 // QR tags for purchased pieces. The QR holds a link to the piece's public page (/p/<SKU>), which shows the piece and
 // its metal value in every quality at today's rate — nothing private.
+import logo from '../assets/avori-logo-black.png';
 import qrcode from 'qrcode-generator';
 import { formatWeight } from './purchaseCalc';
 
@@ -58,7 +59,7 @@ const TAG_CSS = `
   .bf { width: 81mm; height: 12mm; }
   .half { width: 29mm; height: 12mm; flex: none; display: flex; align-items: center; }
   .front { justify-content: space-between; padding: 0 1.5mm 0 2.5mm; }
-  .brand { font-family: Georgia, 'Times New Roman', serif; font-size: 9pt; letter-spacing: 0.12em; }
+  .brand { width: 13mm; height: auto; flex: none; display: block; }
   .bf .qr { width: 10.5mm; height: 10.5mm; }
   .fold { width: 0; height: 12mm; flex: none; border-left: 0.35mm dashed #000; }
   .back { flex-direction: column; justify-content: center; align-items: flex-start; gap: 0.3mm; padding: 0 2mm;
@@ -69,8 +70,7 @@ const TAG_CSS = `
   .fl { width: var(--w); height: var(--h); justify-content: space-between; gap: 1mm; padding: 0.8mm 1.2mm 0.8mm 2mm; }
   .fl-text { display: flex; flex-direction: column; justify-content: center; min-width: 0; height: 100%;
     font-size: calc(var(--h) * 0.17); line-height: 1.15; white-space: nowrap; letter-spacing: 0.03em; }
-  .fl-brand { margin-top: 0.6mm; font-family: Georgia, 'Times New Roman', serif; letter-spacing: 0.32em;
-    font-size: calc(var(--h) * 0.2); }
+  .fl-brand { margin-top: 0.7mm; height: calc(var(--h) * 0.19); width: auto; align-self: flex-start; display: block; }
   .fl .qr { width: calc(var(--h) - 1.6mm); height: calc(var(--h) - 1.6mm); }
 
   .bar { display: none; }
@@ -135,10 +135,12 @@ const TAG_SCRIPT = `
  * The style and flag size are remembered in this browser. Print from the button (or Ctrl+P) on the label printer.
  */
 export function printTags(items, metalTypes = []) {
+  // The preview opens in a blank window, so the logo needs its full address.
+  const logoUrl = new URL(logo, window.location.href).href;
   const butterfly = items.map((it) => `
     <div class="tag bf">
       <div class="half front">
-        <span class="brand">AVORI</span>
+        <img class="brand" src="${logoUrl}" alt="AVORI">
         <span class="qr">${qrSvg(productUrl(it.skuNo))}</span>
       </div>
       <div class="fold"></div>
@@ -155,7 +157,7 @@ export function printTags(items, metalTypes = []) {
         <span>${escape(it.skuNo)}</span>
         <span>${formatWeight(it.netWeight)} g</span>
         <span>${escape(metalShort(it.metalType))}</span>
-        <span class="fl-brand">AVORI</span>
+        <img class="fl-brand" src="${logoUrl}" alt="AVORI">
       </div>
       <span class="qr">${qrSvg(productUrl(it.skuNo))}</span>
     </div>`).join('');

@@ -160,7 +160,7 @@ function DashboardPage({ drafts, sales, stock, onNavigate, can = () => true }) {
         </div>
       </div>
 
-      <div className="iv-tiles">
+      <div className="iv-tiles db-kpis">
         {showSales && (
           <Kpi icon="receipt" label={ownSalesOnly ? 'My sales this month' : 'Sales this month'}
             value={`₹${formatAmount(thisMonth.sales)}`}

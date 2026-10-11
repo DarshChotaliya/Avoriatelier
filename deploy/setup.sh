@@ -147,7 +147,12 @@ server {
 }
 EOF
 if [ -d /etc/nginx/sites-enabled ]; then ln -sf "$SITE" /etc/nginx/sites-enabled/${SERVICE}; fi
-nginx -t
+# A bad site file must not stay behind: it would stop the next reload for every other site on this server.
+if ! nginx -t; then
+  rm -f "/etc/nginx/sites-enabled/${SERVICE}" "$SITE"
+  echo "Nginx did not accept the ERP site, so it was removed again. Other sites are unchanged."
+  exit 1
+fi
 systemctl reload nginx
 
 say "7/8 Firewall / HTTPS"

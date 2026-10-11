@@ -37,7 +37,7 @@ if (!fs.existsSync(loginFile)) {
   process.exit(1);
 }
 const vps = JSON.parse(fs.readFileSync(loginFile, 'utf8'));
-if (!vps.password || vps.password.startsWith('PUT_')) {
+if (!vps.password || vps.password.startsWith('PUT')) {
   console.error('Fill in "password" in deploy/vps.local.json first.');
   process.exit(1);
 }

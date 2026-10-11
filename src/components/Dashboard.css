@@ -267,3 +267,14 @@
   border-radius: 10px;
   background: var(--calc-bg);
 }
+
+/* However many tiles a user may see (3 to 5), they share one row and wrap only on narrow screens. */
+.iv-tiles.db-kpis {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.db-kpis .iv-tile strong {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
