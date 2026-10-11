@@ -3,14 +3,9 @@
   "name": "Avori ERP",
   "icons": [
     {
-      "src": "favicon.svg",
-      "type": "image/svg+xml",
-      "sizes": "any"
-    },
-    {
       "src": "favicon.png",
-      "type": "image/png",
-      "sizes": "64x64"
+      "sizes": "256x256",
+      "type": "image/png"
     }
   ],
   "start_url": ".",

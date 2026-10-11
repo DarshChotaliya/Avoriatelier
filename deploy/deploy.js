@@ -31,16 +31,27 @@ if (!['check', 'setup', 'update'].includes(mode)) {
   process.exit(1);
 }
 
-const loginFile = path.join(__dirname, 'vps.local.json');
-if (!fs.existsSync(loginFile)) {
-  console.error('Missing deploy/vps.local.json. Copy deploy/vps.example.json to that name and fill in the password.');
-  process.exit(1);
-}
-const vps = JSON.parse(fs.readFileSync(loginFile, 'utf8'));
-if (!vps.password || vps.password.startsWith('PUT')) {
-  console.error('Fill in "password" in deploy/vps.local.json first.');
-  process.exit(1);
-}
+// Login: deploy/vps.local.json when it holds the password; otherwise the password is asked for here (typed hidden,
+// kept only in memory). Host, username and domain come from vps.local.json, else from vps.example.json.
+const readJson = (name) => {
+  const file = path.join(__dirname, name);
+  return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
+};
+const vps = { ...readJson('vps.example.json'), ...readJson('vps.local.json') };
+const hasPassword = (v) => Boolean(v) && !v.startsWith('PUT');
+
+const askPassword = () => new Promise((resolve) => {
+  const readline = require('readline');
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  process.stdout.write(`Password for ${vps.username || 'root'}@${vps.host} (hidden): `);
+  // Nothing typed is echoed back.
+  rl._writeToOutput = () => {};
+  rl.question('', (answer) => {
+    rl.close();
+    process.stdout.write('\n');
+    resolve(answer.trim());
+  });
+});
 
 const run = (conn, command) => new Promise((resolve, reject) => {
   conn.exec(command, (err, stream) => {
@@ -70,8 +81,11 @@ conn.on('ready', async () => {
       console.log('Uploading setup.sh…');
       await upload(conn, path.join(__dirname, 'setup.sh'), '/root/avori-erp-setup.sh');
       // A domain is optional; without one the ERP is served on http://<ip>:<free port>.
-      const domain = /^[a-z0-9.-]+$/i.test(vps.domain || '') ? vps.domain : '';
-      code = await run(conn, `DOMAIN='${domain}' bash /root/avori-erp-setup.sh`);
+      // `--local`: no domain site; the ERP answers only on a port of the server itself (used when another
+      // Nginx site already owns the domain and will be pointed at the ERP by hand).
+      const local = process.argv.includes('--local');
+      const domain = !local && /^[a-z0-9.-]+$/i.test(vps.domain || '') ? vps.domain : '';
+      code = await run(conn, `DOMAIN='${domain}' LOCAL_ONLY='${local ? 1 : ''}' bash /root/avori-erp-setup.sh`);
     } else {
       code = await run(conn, COMMANDS[mode]);
     }
@@ -86,6 +100,13 @@ conn.on('ready', async () => {
 }).on('error', (e) => {
   console.error('SSH:', e.message);
   process.exit(1);
-}).connect({
-  host: vps.host, port: vps.port || 22, username: vps.username || 'root', password: vps.password, readyTimeout: 30000,
 });
+
+(async () => {
+  const password = hasPassword(vps.password) ? vps.password : await askPassword();
+  if (!password) {
+    console.error('No password given.');
+    process.exit(1);
+  }
+  conn.connect({ host: vps.host, port: vps.port || 22, username: vps.username || 'root', password, readyTimeout: 30000 });
+})();

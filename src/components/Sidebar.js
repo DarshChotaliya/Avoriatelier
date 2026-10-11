@@ -57,7 +57,7 @@ function Sidebar({ page, collapsed, onToggle, onNavigate, user, can, onChangePas
     <aside className="sidebar">
       <div className="sidebar-brand">
         {/* Both logos are rendered; CSS shows the mark when collapsed and the full logo otherwise / on hover. */}
-        <img className="sidebar-mark" src={`${process.env.PUBLIC_URL}/favicon.svg`} alt="" aria-hidden="true" />
+        <img className="sidebar-mark" src={`${process.env.PUBLIC_URL}/favicon.png`} alt="" aria-hidden="true" />
         <img className="sidebar-logo" src={`${process.env.PUBLIC_URL}/brand/avori-logo-white.png`} alt="Avori" />
         <button type="button" className="sidebar-toggle" onClick={onToggle}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}

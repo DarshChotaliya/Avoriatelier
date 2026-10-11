@@ -39,8 +39,8 @@ public static class ErpSeeder
         });
         await Fill(db, ct, () => new (string Name, string Pricing, decimal Rate)[]
         {
-            ("CZ RND", StonePricing.PerCt, 250), ("CZ OVL", StonePricing.PerCt, 250), ("CZ PEAR", StonePricing.PerCt, 250),
-            ("CZ HRT", StonePricing.PerCt, 250), ("CZ EMR", StonePricing.PerCt, 250), ("CZ PRN", StonePricing.PerCt, 250),
+            ("RND", StonePricing.PerCt, 250), ("OVL", StonePricing.PerCt, 250), ("PEAR", StonePricing.PerCt, 250),
+            ("HRT", StonePricing.PerCt, 250), ("EMR", StonePricing.PerCt, 250), ("PRN", StonePricing.PerCt, 250),
             ("SEMI RND", StonePricing.PerCt, 15), ("SEMI OVL", StonePricing.PerCt, 110),
             ("Solitaire (certified)", StonePricing.PerCert, 0),
         }.Select(s => new StoneTypeMaster { Name = s.Name, Pricing = s.Pricing, Rate = s.Rate }));

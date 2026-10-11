@@ -415,7 +415,7 @@ function App() {
 
   // ---------- signed out ----------
   if (auth.checking) {
-    return <div className="app-loading"><img src={`${process.env.PUBLIC_URL}/favicon.svg`} alt="" /> Loading…</div>;
+    return <div className="app-loading"><img src={`${process.env.PUBLIC_URL}/favicon.png`} alt="" /> Loading…</div>;
   }
   if (!auth.user) return <LoginPage setup={auth.needsSetup} onSignedIn={signedIn} />;
 

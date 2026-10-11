@@ -13,6 +13,8 @@ REPO_URL="${REPO_URL:-https://github.com/DarshChotaliya/Avoriatelier.git}"
 BRANCH="${BRANCH:-dev_d}"
 APP_DIR="${APP_DIR:-/var/www/avori-erp}"
 DOMAIN="${DOMAIN:-}"
+# LOCAL_ONLY=1: the port site answers only on the server itself (another Nginx site then serves it on a domain).
+LOCAL_ONLY="${LOCAL_ONLY:-}"
 SERVICE=avori-erp
 DB_NAME=avori_erp
 DB_USER=avori_erp
@@ -61,7 +63,8 @@ fi
 
 say "3/8 Database and settings"
 if [ ! -f "$ENV_FILE" ]; then
-  DB_PASS="$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32)"
+  # (No `tr </dev/urandom | head`: with pipefail the closed pipe would stop the script.)
+  DB_PASS="$(openssl rand -hex 20)"
   API_PORT="$(free_port 5023 5024 5025 5026 5027 5028 5029 5030)"
   runuser -u postgres -- psql -v ON_ERROR_STOP=1 -tc "SELECT 1 FROM pg_roles WHERE rolname='${DB_USER}'" | grep -q 1 \
     && runuser -u postgres -- psql -v ON_ERROR_STOP=1 -c "ALTER ROLE ${DB_USER} WITH LOGIN PASSWORD '${DB_PASS}'" \
@@ -116,12 +119,12 @@ say "6/8 Nginx site"
 if [ -d /etc/nginx/sites-enabled ]; then SITE=/etc/nginx/sites-available/${SERVICE}; else SITE=/etc/nginx/conf.d/${SERVICE}.conf; fi
 if [ -n "$DOMAIN" ]; then
   LISTEN="listen 80;"; SERVER_NAME="$DOMAIN"; WEB_PORT=80
-elif [ -f "$SITE" ] && grep -qE 'listen [0-9]+;' "$SITE"; then
-  WEB_PORT="$(grep -oE 'listen [0-9]+;' "$SITE" | head -1 | grep -oE '[0-9]+')"
-  LISTEN="listen ${WEB_PORT};"; SERVER_NAME="_"
+elif [ -f "$SITE" ] && grep -qE 'listen ([0-9.]+:)?[0-9]+;' "$SITE"; then
+  WEB_PORT="$(grep -oE 'listen ([0-9.]+:)?[0-9]+;' "$SITE" | head -1 | grep -oE '[0-9]+;' | tr -d ';')"
+  LISTEN="listen ${LOCAL_ONLY:+127.0.0.1:}${WEB_PORT};"; SERVER_NAME="_"
 else
   WEB_PORT="$(free_port 8090 8091 8092 8093 8094 8095 8096 8097 8098 8099)"
-  LISTEN="listen ${WEB_PORT};"; SERVER_NAME="_"
+  LISTEN="listen ${LOCAL_ONLY:+127.0.0.1:}${WEB_PORT};"; SERVER_NAME="_"
 fi
 cat > "$SITE" <<EOF
 # Avori ERP: the built web app, with /api passed to the API on 127.0.0.1:${API_PORT}.
@@ -156,7 +159,7 @@ fi
 systemctl reload nginx
 
 say "7/8 Firewall / HTTPS"
-if command -v ufw >/dev/null && ufw status | grep -q "Status: active"; then ufw allow "${WEB_PORT}/tcp" >/dev/null; fi
+if [ -z "$LOCAL_ONLY" ] && command -v ufw >/dev/null && ufw status | grep -q "Status: active"; then ufw allow "${WEB_PORT}/tcp" >/dev/null; fi
 if [ -n "$DOMAIN" ] && command -v certbot >/dev/null; then
   certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --register-unsafely-without-email --redirect \
     || echo "certbot could not get a certificate yet (is the DNS A record of $DOMAIN pointing here?). Run it again later."
