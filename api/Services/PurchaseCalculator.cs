@@ -11,11 +11,13 @@ public static class PurchaseCalculator
     private static decimal Money(decimal v) => Math.Round(v, 2, MidpointRounding.AwayFromZero);
     private static decimal Weight(decimal v) => Math.Round(v, 3, MidpointRounding.AwayFromZero);
 
-    // Amount = Carat × Rate/Carat, less Discount %
+    // Amount = Carat × Rate/Carat, less Discount %; per diamond: Carat ÷ Qty and Amount ÷ Qty
     public static void Calculate(DiamondItem item)
     {
         var baseAmount = item.Carat * item.RatePerCarat;
         item.Amount = Money(baseAmount - baseAmount * item.DiscountPercent / 100m);
+        item.AvgWeight = item.Quantity > 0 ? Weight(item.Carat / item.Quantity) : 0m;
+        item.AvgPrice = item.Quantity > 0 ? Money(item.Amount / item.Quantity) : 0m;
     }
 
     // Net = Gross − Stone; Chargeable = Net + Wastage; Gold Value = Chargeable × Rate

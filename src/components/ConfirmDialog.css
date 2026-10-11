@@ -1,0 +1,82 @@
+/* In-app confirm / alert dialog (replaces the browser's window.confirm and window.alert). */
+.cd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(3, 30, 26, 0.55);
+  animation: cd-fade 0.12s ease-out;
+}
+
+.cd-box {
+  width: 100%;
+  max-width: 400px;
+  padding: 24px 24px 20px;
+  text-align: center;
+  background: var(--surface);
+  border-radius: 14px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+  animation: cd-pop 0.14s ease-out;
+}
+
+.cd-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--brand);
+  background: var(--brand-light);
+}
+
+.cd-icon.danger {
+  color: var(--danger);
+  background: #fbeceb;
+}
+
+.cd-box h2 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  color: var(--text);
+}
+
+.cd-box p {
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.cd-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.cd-actions .btn {
+  min-width: 110px;
+  font-weight: 600;
+}
+
+.cd-danger {
+  color: #fff;
+  background: var(--danger);
+}
+
+.cd-danger:hover {
+  background: #a93226;
+}
+
+@keyframes cd-fade {
+  from { opacity: 0; }
+}
+
+@keyframes cd-pop {
+  from { opacity: 0; transform: scale(0.96); }
+}

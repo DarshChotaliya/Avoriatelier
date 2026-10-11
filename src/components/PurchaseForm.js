@@ -152,7 +152,7 @@ function PurchaseForm({ purchaseId, onSaved, onCancel }) {
             onChange={(v) => setField('purchaseDate', v)} />
           <Field label="Supplier Name" required value={form.supplierName}
             onChange={(v) => setField('supplierName', v)} />
-          <Field label="Invoice No." value={form.invoiceNo} onChange={(v) => setField('invoiceNo', v)} />
+          <Field label="Vendor Invoice No." value={form.invoiceNo} onChange={(v) => setField('invoiceNo', v)} />
           <Field label="Purchase Type" required value={form.purchaseType} options={PURCHASE_TYPES}
             onChange={(v) => setField('purchaseType', v)} />
           <Field label="Payment Type" required value={form.paymentType} options={PAYMENT_TYPES}

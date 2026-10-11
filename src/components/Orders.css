@@ -1,0 +1,94 @@
+/* Orders list and dialog; builds on the invoice and master styles. */
+
+.od-modal {
+  max-width: 980px;
+}
+
+/* "From quotation QT-00001 · agreed amount ₹…" above an order made from a quotation. */
+.od-from-quote {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--brand);
+  background: var(--brand-light);
+  border-radius: 8px;
+}
+
+/* Design picture beside the client & piece fields. */
+.od-piece {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.od-piece .od-grid {
+  flex: 1;
+}
+
+.qt-photo.od-photo {
+  width: 96px;
+  height: 96px;
+}
+
+.od-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px 16px;
+  align-items: start;
+}
+
+.od-span-2 {
+  grid-column: span 2;
+}
+
+.od-status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: var(--calc-bg);
+  color: var(--muted);
+}
+
+.od-pending {
+  background: #fdecea;
+  color: var(--danger);
+}
+
+.od-order-placed,
+.od-cad-confirmed,
+.od-in-production {
+  background: #fff4dc;
+  color: #8a6416;
+}
+
+.od-ready {
+  background: #e7efff;
+  color: #2a4a8f;
+}
+
+.od-delivered {
+  background: #e5f5ee;
+  color: #0b7a5c;
+}
+
+@media (max-width: 900px) {
+  .od-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .od-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .od-span-2 {
+    grid-column: auto;
+  }
+}

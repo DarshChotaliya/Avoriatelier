@@ -1,0 +1,210 @@
+/* Read-only purchase details dialog. */
+
+.pd-modal {
+  max-width: 1100px;
+}
+
+.pd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px 18px;
+}
+
+.pd-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.pd-info span {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pd-info strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.pd-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #fbfdfc;
+}
+
+.pd-item + .pd-item {
+  margin-top: 10px;
+}
+
+.pd-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: var(--brand);
+}
+
+.pd-amount {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 6px;
+  background: var(--brand-light);
+}
+
+.pd-net {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: var(--brand-dark);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.pd-net strong {
+  padding: 6px 16px;
+  border-radius: 10px;
+  background: var(--gold);
+  color: var(--brand-dark);
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 18px;
+}
+
+/* ---------- Purchase invoice / item details ---------- */
+
+.pd-wide {
+  max-width: 1280px;
+}
+
+.pdi-top {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.pdi-photo {
+  width: 84px;
+  height: 84px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pdi-photo-empty {
+  background: var(--calc-bg);
+  color: #9aa8a5;
+}
+
+.pdi-sku {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  color: var(--brand);
+}
+
+.pdi-groups {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.pdi-group {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.pdi-group h4 {
+  margin: 0;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand);
+  background: var(--brand-light);
+}
+
+.pdi-group .pd-grid {
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  padding: 10px 12px;
+}
+
+/* Stones / Diamonds: a heading above a bordered table (a <caption> was
+   clipped by the table's rounded, overflow-hidden frame) */
+.pdi-block {
+  margin-top: 14px;
+}
+
+.pdi-block-title {
+  margin: 0 0 6px 2px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.pdi-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.pdi-table caption {
+  text-align: left;
+  padding: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.pdi-table th {
+  text-align: left;
+  background: var(--calc-bg);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  padding: 6px 10px;
+}
+
+.pdi-table td {
+  padding: 7px 10px;
+  border-top: 1px solid var(--border);
+}
+
+.pdi-table th.num,
+.pdi-table td.num {
+  text-align: right;
+}
+
+.pdi-table .mono {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+}
+
+@media (max-width: 1000px) {
+  .pdi-groups {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,70 @@
+/* Pager bar under a list table. */
+
+.pg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  padding: 12px 4px 2px;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.pg-info b {
+  color: var(--text);
+}
+
+.pg-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The select is a bare button that would otherwise stretch and squeeze its label. */
+.pg-size .sb-btn {
+  flex: none;
+  width: 70px;
+  height: 32px;
+  padding: 0 8px 0 10px;
+  font-size: 13px;
+}
+
+.pg-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.pg-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pg-btn:hover:not(:disabled):not(.active) {
+  background: var(--brand-light);
+}
+
+.pg-btn.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+.pg-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

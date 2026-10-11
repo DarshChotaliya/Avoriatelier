@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Purchase.Api.Auth;
 using Purchase.Api.Dtos;
 using Purchase.Api.Entities;
 using Purchase.Api.Services;
@@ -7,6 +9,7 @@ namespace Purchase.Api.Controllers;
 
 [ApiController]
 [Route("api/purchases")]
+[Authorize(Policy = Permissions.PurchaseView)]
 public class PurchasesController : ControllerBase
 {
     private readonly IPurchaseService _service;
@@ -33,6 +36,7 @@ public class PurchasesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = Permissions.PurchaseEdit)]
     public async Task<ActionResult<PurchaseDto>> Create(PurchaseRequest request, CancellationToken ct)
     {
         var dto = await _service.CreateAsync(request, ct);
@@ -40,6 +44,7 @@ public class PurchasesController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Policy = Permissions.PurchaseEdit)]
     public async Task<ActionResult<PurchaseDto>> Update(int id, PurchaseRequest request, CancellationToken ct)
     {
         var dto = await _service.UpdateAsync(id, request, ct);
@@ -47,6 +52,7 @@ public class PurchasesController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = Permissions.PurchaseDelete)]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
         => await _service.DeleteAsync(id, ct) ? NoContent() : NotFound();
 }

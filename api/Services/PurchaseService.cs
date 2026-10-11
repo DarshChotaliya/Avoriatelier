@@ -178,9 +178,9 @@ public class PurchaseService : IPurchaseService
             case PurchaseType.Diamond:
                 e.DiamondItems.AddRange(r.DiamondItems.Select(i => new DiamondItem
                 {
-                    PacketLotNo = i.PacketLotNo, Shape = i.Shape, Carat = i.Carat, Color = i.Color,
+                    PacketLotNo = i.PacketLotNo, Shape = i.Shape, SizeMm = i.SizeMm, Carat = i.Carat, Color = i.Color,
                     Clarity = i.Clarity, Cut = i.Cut, Polish = i.Polish, Symmetry = i.Symmetry,
-                    Fluorescence = i.Fluorescence, CertificateNo = i.CertificateNo,
+                    Fluorescence = i.Fluorescence, CertificateLab = i.CertificateLab, CertificateNo = i.CertificateNo,
                     CertificateDate = i.CertificateDate, Quantity = i.Quantity, RatePerCarat = i.RatePerCarat,
                     DiscountPercent = i.DiscountPercent
                 }));
@@ -227,9 +227,10 @@ public class PurchaseService : IPurchaseService
         IgstAmount = p.IgstAmount,
         RoundOff = p.RoundOff,
         NetPurchaseAmount = p.NetPurchaseAmount,
-        DiamondItems = p.DiamondItems.Select(i => new DiamondItemDto(i.Id, i.PacketLotNo, i.Shape, i.Carat,
-            i.Color, i.Clarity, i.Cut, i.Polish, i.Symmetry, i.Fluorescence, i.CertificateNo, i.CertificateDate,
-            i.Quantity, i.RatePerCarat, i.DiscountPercent, i.Amount)).ToList(),
+        DiamondItems = p.DiamondItems.Select(i => new DiamondItemDto(i.Id, i.PacketLotNo, i.Shape, i.SizeMm, i.Carat,
+            i.Color, i.Clarity, i.Cut, i.Polish, i.Symmetry, i.Fluorescence, i.CertificateLab, i.CertificateNo,
+            i.CertificateDate,
+            i.Quantity, i.RatePerCarat, i.DiscountPercent, i.Amount, i.AvgWeight, i.AvgPrice)).ToList(),
         GoldItems = p.GoldItems.Select(i => new GoldItemDto(i.Id, i.GoldType, i.Purity, i.GrossWeight,
             i.StoneWeight, i.NetWeight, i.WastagePercent, i.WastageWeight, i.ChargeableWeight, i.RatePerGram,
             i.GoldValue, i.MakingCharges, i.OtherCharges, i.Amount)).ToList(),

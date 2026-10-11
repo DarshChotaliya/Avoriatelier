@@ -1,0 +1,432 @@
+/* SKU Master & Registry. */
+
+.sk-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sk-title-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand);
+  color: #fff;
+}
+
+.sk-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.sk-mono {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+}
+
+/* ---------- Tiles ---------- */
+
+.sk-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.sk-tile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.sk-tile small {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.sk-tile strong {
+  font-size: 22px;
+  color: var(--text);
+}
+
+.sk-tile em {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.sk-tile-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-light);
+  color: var(--brand);
+  flex-shrink: 0;
+}
+
+.sk-tile-icon.sk-green {
+  background: #e5f5ee;
+  color: #0b7a5c;
+}
+
+.sk-green-text {
+  color: #0b7a5c !important;
+}
+
+.sk-preview {
+  justify-content: space-between;
+  background: var(--brand-dark);
+  border-color: var(--brand-dark);
+}
+
+.sk-preview small {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.sk-preview strong {
+  display: block;
+  color: var(--gold);
+  font-size: 24px;
+  letter-spacing: 0.04em;
+}
+
+.sk-preview .sb-btn {
+  margin-top: 6px;
+  width: auto;
+  min-width: 130px;
+  height: 28px;
+  padding: 0 8px;
+  font-size: 12px;
+  border-radius: 6px;
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.sk-preview .sb-caret {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.sk-copy {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.sk-copy:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ---------- Tabs ---------- */
+
+.sk-tabs {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sk-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 4px;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.sk-tabs button.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+}
+
+/* ---------- Registry ---------- */
+
+.sk-head h3 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sk-head p {
+  margin: 0 0 14px;
+  font-size: 13px;
+}
+
+.sk-count {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--brand-light);
+  color: var(--brand);
+}
+
+.sk-tag {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--calc-bg);
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sk-seq {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: var(--calc-bg);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.sk-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sk-spec {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.sk-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #bfe5d4;
+  background: #e5f5ee;
+  color: #0b7a5c;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.sk-inv {
+  text-transform: none;
+}
+
+.sk-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sk-edit-btn:hover:not(:disabled) {
+  border-color: var(--brand);
+  background: var(--brand-light);
+}
+
+.sk-edit-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.sk-more {
+  display: flex;
+  justify-content: center;
+  padding-top: 14px;
+}
+
+.sk-prefix {
+  width: 110px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  text-transform: uppercase;
+}
+
+.sk-edit {
+  max-width: 480px;
+}
+
+.sk-edit-item {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.sk-edit input {
+  height: 42px;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  .sk-tiles {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Format & counter settings ---------- */
+.sk-format {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.sk-panel {
+  padding: 18px 20px;
+}
+
+.sk-panel h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  font-size: 16px;
+  color: var(--brand);
+}
+
+.sk-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 16px;
+}
+
+.sk-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sk-label em {
+  color: var(--danger);
+  font-style: normal;
+}
+
+.sk-field input {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.sk-field small {
+  font-size: 12px;
+}
+
+.sk-choice {
+  display: flex;
+  gap: 8px;
+}
+
+.sk-choice button {
+  flex: 1;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.sk-choice button.active {
+  color: #fff;
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.sk-choice button:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.sk-counter input {
+  max-width: 160px;
+}
+
+.sk-save {
+  width: 100%;
+  justify-content: center;
+}
+
+.sk-breakdown td,
+.sk-breakdown th {
+  padding: 10px 8px;
+}
+
+.sk-sample {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--brand-light);
+}
+
+.sk-result {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-weight: 700;
+  color: var(--gold);
+  background: var(--brand);
+}
+
+.sk-note {
+  margin: 12px 0 0;
+  font-size: 12px;
+}
+
+@media (max-width: 1000px) {
+  .sk-format {
+    grid-template-columns: 1fr;
+  }
+}

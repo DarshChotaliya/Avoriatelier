@@ -14,8 +14,31 @@ public class PurchaseDbContext : DbContext
     public DbSet<GoldItem> GoldItems => Set<GoldItem>();
     public DbSet<SilverItem> SilverItems => Set<SilverItem>();
 
+    // ERP: masters, purchase invoices (packing-list style) and sales invoices. Mapping in ErpModel.cs.
+    public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
+    public DbSet<ItemCategory> ItemCategories => Set<ItemCategory>();
+    public DbSet<ItemCollection> ItemCollections => Set<ItemCollection>();
+    public DbSet<Branch> Branches => Set<Branch>();
+    public DbSet<MetalTypeMaster> MetalTypes => Set<MetalTypeMaster>();
+    public DbSet<DiamondTypeMaster> DiamondTypes => Set<DiamondTypeMaster>();
+    public DbSet<StoneTypeMaster> StoneTypes => Set<StoneTypeMaster>();
+    public DbSet<PurchaseInvoice> PurchaseInvoices => Set<PurchaseInvoice>();
+    public DbSet<PurchaseInvoiceItem> PurchaseInvoiceItems => Set<PurchaseInvoiceItem>();
+    public DbSet<SalesInvoice> SalesInvoices => Set<SalesInvoice>();
+    public DbSet<SalesInvoiceLine> SalesInvoiceLines => Set<SalesInvoiceLine>();
+    public DbSet<Quotation> Quotations => Set<Quotation>();
+    public DbSet<CustomerOrder> CustomerOrders => Set<CustomerOrder>();
+    public DbSet<DailyMetalRate> DailyMetalRates => Set<DailyMetalRate>();
+    public DbSet<SkuSetting> SkuSettings => Set<SkuSetting>();
+    public DbSet<StoneNameMaster> StoneNames => Set<StoneNameMaster>();
+    public DbSet<DiamondShapeMaster> DiamondShapes => Set<DiamondShapeMaster>();
+    public DbSet<AppUser> Users => Set<AppUser>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        ErpModel.Configure(modelBuilder);
+
         modelBuilder.Entity<PurchaseHeader>(e =>
         {
             e.ToTable("purchase");
@@ -49,9 +72,13 @@ public class PurchaseDbContext : DbContext
             e.Property(i => i.RatePerCarat).HasPrecision(18, 2);
             e.Property(i => i.DiscountPercent).HasPrecision(5, 2);
             e.Property(i => i.Amount).HasPrecision(18, 2);
+            e.Property(i => i.AvgWeight).HasPrecision(12, 3);
+            e.Property(i => i.AvgPrice).HasPrecision(18, 2);
             foreach (var name in new[] { "PacketLotNo", "Shape", "Color", "Clarity", "Cut", "Polish", "Symmetry",
                          "Fluorescence", "CertificateNo" })
                 e.Property(name).HasMaxLength(50);
+            e.Property(i => i.SizeMm).HasMaxLength(30);
+            e.Property(i => i.CertificateLab).HasMaxLength(20);
         });
 
         modelBuilder.Entity<GoldItem>(e =>

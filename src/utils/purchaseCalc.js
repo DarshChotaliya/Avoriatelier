@@ -14,9 +14,16 @@ export const num = (v) => {
   return Number.isFinite(n) ? n : 0;
 };
 
+/** Amount of a diamond parcel, and the average of one diamond in it (Carat ÷ Qty, Amount ÷ Qty). */
 export function calcDiamond(item) {
   const base = num(item.carat) * num(item.ratePerCarat);
-  return { amount: money(base - (base * num(item.discountPercent)) / 100) };
+  const amount = money(base - (base * num(item.discountPercent)) / 100);
+  const qty = Math.trunc(num(item.quantity));
+  return {
+    amount,
+    avgWeight: qty > 0 ? weight(num(item.carat) / qty) : 0,
+    avgPrice: qty > 0 ? money(amount / qty) : 0,
+  };
 }
 
 export function calcGold(item) {

@@ -16,6 +16,18 @@ public class PurchaseCalculatorTests
     }
 
     [Fact]
+    public void Diamond_parcel_stores_the_average_weight_and_price_of_one_diamond()
+    {
+        var item = new DiamondItem { Carat = 1.20m, Quantity = 7, RatePerCarat = 50000m };
+
+        PurchaseCalculator.Calculate(item);
+
+        Assert.Equal(60000m, item.Amount);
+        Assert.Equal(0.171m, item.AvgWeight);
+        Assert.Equal(8571.43m, item.AvgPrice);
+    }
+
+    [Fact]
     public void Gold_amount_uses_chargeable_weight_including_wastage()
     {
         var item = new GoldItem

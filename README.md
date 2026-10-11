@@ -73,3 +73,25 @@ same logic (`src/utils/purchaseCalc.js`) for live display only.
   Net Purchase Amount = Taxable + taxes rounded to the nearest rupee (difference shown as Round Off)
 
 Amounts are rounded to 2 decimals, weights to 3 decimals.
+
+## ERP screens (masters, purchase invoices, sales invoices)
+
+Stored in the same `purchase` database. In Development the API applies pending migrations and fills empty
+master lists on start-up (`api/Services/ErpSeeder.cs`), so `dotnet run` is enough.
+
+| Area | Tables | API |
+|------|--------|-----|
+| Masters | `customer`, `supplier`, `item_category`, `item_collection`, `branch`, `metal_type`, `diamond_type`, `stone_type` | `GET /api/masters` (all lists) · `POST /api/masters/{kind}` (create / update by `id`) · `DELETE /api/masters/{kind}/{id}` |
+| Purchase invoices | `purchase_invoice`, `purchase_invoice_item`, `purchase_item_stone`, `purchase_item_diamond` | `GET/POST /api/purchase-invoices` · `PUT/DELETE /api/purchase-invoices/{id}` · `DELETE …/{id}/items/{itemId}` · `POST …/skus/{sku}/rename` |
+| Sales invoices | `sales_invoice`, `sales_invoice_line` | `GET/POST /api/sales-invoices` · `GET …/next-number` · `DELETE …/{id}` |
+
+Rules enforced by the server:
+
+- **SKU No.** = the item's Diamond Type prefix + a 5-digit running number per prefix (`AD-00001`); unique.
+- **Cost / pc** = metal (net wt × rate) + diamonds + stones (per Ct: wt × rate, per Cert: pcs × rate)
+  + max(net wt × labour/g, labour minimum) + hallmark + other (`ErpCalculator.cs`).
+- **Stock** of a SKU = purchased qty − qty on sales invoices. A sale cannot exceed it; a sold item cannot be
+  removed, renamed, or reduced below the sold qty.
+- Master names are unique (case-insensitive); a name used by invoices cannot be renamed or deleted.
+
+Data saved in the browser by earlier versions can be moved in once with the **Import to database** banner.

@@ -49,6 +49,9 @@ public class DiamondItem
 
     public string? PacketLotNo { get; set; }
     public string? Shape { get; set; }
+
+    /// <summary>Diamond size in mm, as written on the parcel (e.g. "6.5" or "6 x 4").</summary>
+    public string? SizeMm { get; set; }
     public decimal Carat { get; set; }
     public string? Color { get; set; }
     public string? Clarity { get; set; }
@@ -56,12 +59,18 @@ public class DiamondItem
     public string? Polish { get; set; }
     public string? Symmetry { get; set; }
     public string? Fluorescence { get; set; }
+    /// <summary>Grading lab that issued the certificate, e.g. IGI or GIA.</summary>
+    public string? CertificateLab { get; set; }
     public string? CertificateNo { get; set; }
     public DateOnly? CertificateDate { get; set; }
     public int Quantity { get; set; }
     public decimal RatePerCarat { get; set; }
     public decimal DiscountPercent { get; set; }
     public decimal Amount { get; set; }
+
+    /// <summary>Average of one diamond in the parcel: Carat ÷ Quantity and Amount ÷ Quantity (server-calculated).</summary>
+    public decimal AvgWeight { get; set; }
+    public decimal AvgPrice { get; set; }
 }
 
 public class GoldItem

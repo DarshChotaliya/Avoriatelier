@@ -1,0 +1,406 @@
+/* Purchase Invoices list (Invoices / Item View). Colors come from the brand tokens in App.css. */
+
+.pi-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.pi-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pi-toggle {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.pi-toggle button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 16px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.pi-toggle button.active {
+  background: var(--brand);
+  color: #fff;
+}
+
+.pi-btn-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 18px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  border: 0;
+  border-radius: 10px;
+  background: var(--gold);
+  color: var(--brand-dark);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pi-btn-gold:hover {
+  filter: brightness(0.95);
+}
+
+.pi-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fff7e6;
+  border: 1px solid #f1dcae;
+  color: #8a6416;
+  font-size: 13px;
+}
+
+.pi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+/* ---------- Filters ---------- */
+
+.pi-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--calc-bg);
+}
+
+.pi-search,
+.pi-dates {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.pi-search {
+  flex: 0 1 280px;
+}
+
+.pi-search input,
+.pi-dates input {
+  border: 0;
+  padding: 0;
+  background: none;
+  font-size: 13px;
+}
+
+.pi-search input:focus,
+.pi-dates input:focus {
+  outline: none;
+}
+
+.pi-dates span {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.pi-dates input {
+  width: 130px;
+}
+
+.pi-group {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.pi-group > span {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Group-by is a segmented control; gold stays reserved for the main "New Invoice" action. */
+.pi-seg {
+  display: inline-flex;
+  height: 40px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.pi-seg button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 13px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.pi-seg button:hover:not(.active) {
+  color: var(--text);
+}
+
+.pi-seg button.active {
+  background: var(--brand-light);
+  color: var(--brand);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(4, 68, 59, 0.25);
+}
+
+/* ---------- Table ---------- */
+
+.pi-table-wrap {
+  overflow-x: auto;
+}
+
+.pi-table th {
+  background: var(--calc-bg);
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 12px 14px;
+}
+
+.pi-table td {
+  padding: 12px 14px;
+  vertical-align: middle;
+}
+
+.pi-table .mono {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+}
+
+.pi-empty {
+  text-align: center;
+  padding: 40px 14px !important;
+  color: var(--muted);
+}
+
+.pi-sku {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid #c9d8f5;
+  background: #eef3fd;
+  color: #2a4a8f;
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 12px;
+}
+
+.pi-thumb {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+}
+
+.pi-thumb-empty {
+  background: var(--calc-bg);
+  color: #9aa8a5;
+}
+
+.pi-item-name {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+
+.pi-item-sub {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.pi-qty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--calc-bg);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pi-blue {
+  color: #2a4a8f;
+}
+
+.pi-red {
+  color: var(--danger);
+}
+
+.pi-green {
+  color: #0b7a5c;
+  font-weight: 600;
+}
+
+.pi-pr {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #e5f5ee;
+  color: #0b7a5c;
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pi-pr.neg {
+  background: #fdecea;
+  color: var(--danger);
+}
+
+.pi-action {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.pi-action.danger:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.pi-group-row td {
+  background: var(--brand-light);
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.pi-group-row span {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+@media (max-width: 900px) {
+  .pi-top {
+    flex-direction: column;
+  }
+
+  .pi-search {
+    flex: 1 1 100%;
+  }
+
+  .pi-group {
+    margin-left: 0;
+  }
+}
+
+/* ---------- Invoices view: expandable rows ---------- */
+
+.pi-table th.pi-expand-col,
+.pi-table td.pi-expand-col {
+  width: 44px;
+  padding-right: 0;
+}
+
+.pi-expand {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--brand);
+  cursor: pointer;
+}
+
+.pi-expand:hover,
+.pi-expand.open {
+  border-color: var(--brand);
+  background: var(--brand-light);
+}
+
+.pi-row-open td {
+  background: #f7fbf9;
+  border-bottom-color: transparent;
+}
+
+.pi-table .pi-sub-row > td {
+  padding: 0 14px 14px 52px;
+  background: #f7fbf9;
+}
+
+.pi-sub-table {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.pi-sub-table th {
+  background: var(--brand-light);
+  color: var(--brand);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 7px 10px;
+}
+
+.pi-sub-table td {
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.pi-sub-table tbody tr:last-child td {
+  border-bottom: 0;
+}

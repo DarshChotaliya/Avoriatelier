@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <!-- Run on a newer .NET runtime (e.g. 10) when the 8.0 runtime is not installed, so a plain `dotnet run` works. -->
+    <RollForward>Major</RollForward>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>fbc9025c-b4fb-4eeb-84aa-6076559aab12</UserSecretsId>

@@ -1,0 +1,257 @@
+/* Quotation dialog and list; builds on the inv-* / so-* / pi-* styles. */
+
+/* Wider than the sale dialog, so each line of design fields has room. */
+.inv-modal.qt-modal {
+  max-width: 1600px;
+}
+
+/* Date · Branch · Customer (wide) · Contact · Status · Advance, then Notes */
+.qt-grid-head {
+  grid-template-columns: 1fr 1fr 2fr 1.2fr 1fr 1fr;
+}
+
+/* Reference photo of a custom design: click to pick a picture. */
+.qt-photo {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  overflow: hidden;
+  border: 1px dashed var(--brand);
+  border-radius: 8px;
+  color: var(--brand);
+  background: var(--brand-light);
+  cursor: pointer;
+}
+
+.qt-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.qt-photo small {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* Category · Size (wide) · Link · Description above the price fields of a custom design. */
+.qt-custom-grid {
+  grid-template-columns: 1.2fr 1.6fr 1.6fr 1.6fr;
+  margin-bottom: 12px;
+}
+
+.qt-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #8a5a00;
+  background: #fff7e6;
+  border: 1px solid #f3dfb4;
+  border-radius: 8px;
+}
+
+.qt-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.qt-line {
+  padding: 14px 18px 16px;
+}
+
+.qt-line-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px dashed var(--border);
+}
+
+.qt-line-no {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand);
+  background: var(--brand-light);
+}
+
+.qt-thumb {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.qt-thumb-empty {
+  background: var(--calc-bg);
+}
+
+.qt-line-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 15px;
+}
+
+.qt-line-title .muted {
+  font-size: 13px;
+}
+
+.qt-line-total {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  text-align: right;
+}
+
+.qt-line-total .muted {
+  font-size: 13px;
+}
+
+.qt-line-total b {
+  font-size: 19px;
+  color: var(--brand);
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+}
+
+/* SKU (wide) · Quote in · Weight · Rate · Labour (rate + type), then Stones · Other · GST · Qty */
+.qt-line-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1.1fr 1fr 1fr 1.8fr;
+  gap: 12px 14px;
+  align-items: start;
+}
+
+.qt-labour > div {
+  display: flex;
+  gap: 6px;
+}
+
+.qt-labour > div > input {
+  width: 45%;
+  min-width: 0;
+}
+
+.qt-labour > div > :last-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.so-badge.qt-open {
+  color: #b7791f;
+  background: #fff4dc;
+}
+
+.so-badge.qt-accepted {
+  color: #0b7a5c;
+  background: #e5f5ee;
+}
+
+.so-badge.qt-rejected {
+  color: var(--danger);
+  background: #fdecea;
+}
+
+@media (max-width: 1100px) {
+  .qt-grid-head,
+  .qt-line-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .qt-grid-head,
+  .qt-line-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .qt-line-head {
+    flex-wrap: wrap;
+  }
+}
+
+/* "Custom Quotation" next to "New Quotation" on the list (same gold button). */
+.qt-new-custom {
+  margin-right: 8px;
+}
+
+/* Every group of design fields sits on one line: equal columns, Labour (rate + type) twice as wide. */
+.qt-line-grid.qt-row {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+}
+
+.qt-row + .qt-row {
+  margin-top: 12px;
+}
+
+.qt-row .qt-labour,
+.qt-row .ic-span-2 {
+  grid-column: span 2;
+}
+
+.qt-custom-grid.qt-row {
+  margin-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .qt-line-grid.qt-row {
+    grid-auto-flow: row;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* List actions: right-aligned, so the icons line up on every row. */
+.qt-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+}
+
+.qt-actions-head {
+  text-align: right;
+}
+
+.qt-order-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--brand);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--brand);
+  cursor: pointer;
+}
+
+.qt-order-btn:hover {
+  background: var(--brand-dark);
+}

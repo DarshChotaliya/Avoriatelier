@@ -1,0 +1,167 @@
+/* Users page and account menu. */
+
+.us-hint {
+  margin: -4px 0 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--calc-bg);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.us-branches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.us-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.us-chip input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: #0b7a5c;
+}
+
+.us-chip.on {
+  border-color: var(--brand);
+  background: var(--brand-light);
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.us-active {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.us-active input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #0b7a5c;
+}
+
+.us-role {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--calc-bg);
+}
+
+.us-owner {
+  background: #fff4dc;
+  color: #8a6416;
+}
+
+.us-manager {
+  background: var(--brand-light);
+  color: var(--brand);
+}
+
+.us-accountant {
+  background: #e7efff;
+  color: #2a4a8f;
+}
+
+.us-you {
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  background: var(--brand);
+  color: #fff;
+}
+
+.us-inactive td {
+  opacity: 0.55;
+}
+
+/* ---------- Account box in the sidebar ---------- */
+
+.sb-account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sb-avatar {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gold);
+  color: var(--brand-dark);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.sb-who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.sb-who strong {
+  color: #fff;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sb-who span {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+}
+
+.sb-acc-btn {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 7px;
+  background: none;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+}
+
+.sb-acc-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+@media (min-width: 901px) {
+  .sidebar-collapsed .sidebar:not(:hover) .sb-account {
+    flex-direction: column;
+    padding: 10px 0;
+  }
+
+  .sidebar-collapsed .sidebar:not(:hover) .sb-who {
+    display: none;
+  }
+}

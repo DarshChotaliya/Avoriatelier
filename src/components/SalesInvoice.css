@@ -1,0 +1,376 @@
+/* Sales invoice dialog; builds on the inv-* styles in PurchaseInvoice.css. */
+
+.so-modal {
+  max-width: 1280px;
+}
+
+.so-no {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.14);
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.so-card {
+  margin-bottom: 14px;
+  padding: 16px 18px;
+}
+
+.so-grid {
+  display: grid;
+  gap: 12px 14px;
+  align-items: start;
+}
+
+/* Date · Branch · Customer (wide) · Contact · City · State · Channel */
+.so-grid-customer {
+  grid-template-columns: 1fr 1fr 2fr 1.2fr 1fr 1fr 1.1fr;
+}
+
+/* Payment method · Payment status · Order status · Courier · Tracking · Shipping · Expenses · Round off, then Notes */
+.so-grid-order {
+  grid-template-columns: repeat(8, 1fr);
+}
+
+.so-notes {
+  grid-column: 1 / -1;
+}
+
+/* Payment status shows its state in color. */
+.so-status select {
+  font-weight: 700;
+}
+
+.so-status.so-pending select,
+.so-pay.so-pending {
+  color: var(--danger);
+}
+
+.so-status.so-partial select,
+.so-pay.so-partial {
+  color: #b7791f;
+}
+
+.so-status.so-paid select,
+.so-pay.so-paid {
+  color: #0b7a5c;
+}
+
+.inv-summary-bar .so-pay.so-pending {
+  color: #ff9b8f;
+}
+
+.inv-summary-bar .so-pay.so-partial {
+  color: #f6c768;
+}
+
+.inv-summary-bar .so-pay.so-paid {
+  color: #8fe3c8;
+}
+
+/* ---------- Address ---------- */
+
+.so-address {
+  padding: 0;
+  overflow: hidden;
+}
+
+.so-address-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  background: var(--calc-bg);
+}
+
+.so-collapse {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.so-same {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.so-same input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #0b7a5c;
+}
+
+.so-address-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 14px 18px 18px;
+}
+
+.so-address-body.so-one {
+  grid-template-columns: 1fr;
+}
+
+.so-address-body textarea {
+  font-size: 14px;
+  border-radius: 8px;
+  resize: vertical;
+}
+
+.so-address-body textarea:disabled {
+  background: var(--calc-bg);
+  color: var(--muted);
+}
+
+/* ---------- Lines ---------- */
+
+.so-lines {
+  padding: 0;
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+
+.so-lines table {
+  min-width: 1100px;
+}
+
+.so-lines th {
+  background: var(--calc-bg);
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 10px 8px;
+}
+
+.so-lines th em {
+  color: var(--danger);
+  font-style: normal;
+}
+
+.so-lines td {
+  padding: 8px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+
+.so-lines tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.so-lines input:not([type='checkbox']) {
+  height: 38px;
+  font-size: 14px;
+  padding: 0 10px;
+  border-radius: 8px;
+}
+
+.so-lines td.num input {
+  width: 92px;
+}
+
+.so-lines .inv-check {
+  margin-top: 10px;
+}
+
+.so-sku input {
+  min-width: 170px;
+}
+
+.so-sku small,
+.so-lines td small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.so-calc {
+  padding-top: 18px !important;
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.so-total {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.so-hint {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #8a6416;
+  background: #fff7e6;
+  border-top: 1px solid #f1dcae;
+}
+
+@media (max-width: 1200px) {
+  .so-grid-customer {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .so-grid-order {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .so-grid-customer,
+  .so-grid-order,
+  .so-address-body {
+    grid-template-columns: 1fr;
+  }
+
+  .so-address-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ---------- Sales list badges ---------- */
+
+.so-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: var(--calc-bg);
+}
+
+.so-badge.so-pending {
+  color: var(--danger);
+  background: #fdecea;
+}
+
+.so-badge.so-partial {
+  color: #b7791f;
+  background: #fff4dc;
+}
+
+.so-badge.so-paid {
+  color: #0b7a5c;
+  background: #e5f5ee;
+}
+
+.so-badge.so-order {
+  color: var(--brand);
+  background: var(--brand-light);
+}
+
+/* "+ New customer" next to the Customer Name label. */
+.cust-field > span {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cust-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.cust-add:hover {
+  text-decoration: underline;
+}
+
+/* "Other state" tick box in a sale item, as tall as the boxes beside it. */
+.so-igst {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* Sale items as one bill-style line each: every column shares the width, so there is no sideways scroll. */
+.so-bill {
+  overflow-x: visible;
+}
+
+.so-bill table {
+  min-width: 0;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.so-bill th {
+  padding: 8px 4px;
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  white-space: normal;
+  line-height: 1.2;
+  vertical-align: bottom;
+}
+
+.so-bill td {
+  padding: 6px 3px;
+}
+
+.so-bill input:not([type='checkbox']),
+.so-bill td.num input {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 0 6px;
+  font-size: 13px;
+}
+
+.so-bill .so-sku input {
+  min-width: 0;
+}
+
+.so-bill th:first-child,
+.so-bill .so-no {
+  width: 26px;
+  padding-top: 16px;
+  text-align: center;
+}
+
+.so-bill th:nth-child(2) { width: 8%; }
+.so-bill th:nth-child(3) { width: 13%; }
+.so-bill th:nth-child(4) { width: 4.5%; }
+.so-bill th:nth-child(5) { width: 8%; }
+.so-bill th:nth-child(6) { width: 3.5%; }
+.so-bill th:nth-child(17) { width: 7.5%; }
+.so-bill th:nth-child(18) { width: 4%; }
+.so-bill th:nth-child(19) { width: 36px; }
+.so-bill th:last-child { width: 36px; }
+
+.so-bill .so-total {
+  padding-top: 14px !important;
+  font-size: 13px;
+  white-space: nowrap;
+}

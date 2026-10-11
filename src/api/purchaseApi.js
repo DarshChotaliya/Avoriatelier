@@ -1,14 +1,21 @@
 // In development, CRA proxies /api to the .NET API (see "proxy" in package.json).
 const BASE_URL = process.env.REACT_APP_API_URL || '';
 
-async function request(path, options = {}) {
+export async function request(path, options = {}) {
   const response = await fetch(`${BASE_URL}${path}`, {
     headers: { 'Content-Type': 'application/json' },
     ...options,
   });
 
+  // Signed out (cookie expired, password/role changed): let the app show the login screen.
+  if (response.status === 401 && !path.startsWith('/api/auth/')) {
+    window.dispatchEvent(new Event('avori:unauthorized'));
+  }
+
   if (!response.ok) {
-    let message = `Request failed (${response.status})`;
+    let message = response.status === 403
+      ? 'You do not have permission to do this.'
+      : `Request failed (${response.status})`;
     try {
       const problem = await response.json();
       if (problem.errors) {

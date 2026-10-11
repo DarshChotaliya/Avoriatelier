@@ -1,0 +1,1120 @@
+/* New Purchase Invoice dialog. Colors come from the brand tokens in App.css. */
+
+.inv-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(3, 30, 26, 0.6);
+}
+
+.inv-modal {
+  width: 100%;
+  max-width: 1500px;
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+/* ---------- Header ---------- */
+
+.inv-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 26px;
+  background: linear-gradient(90deg, var(--brand-dark), var(--brand));
+  color: #fff;
+}
+
+.inv-header h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.inv-header p {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.inv-header-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gold);
+  color: var(--brand-dark);
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.inv-close {
+  margin-left: auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.inv-close:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* ---------- Body ---------- */
+
+.inv-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+}
+
+.inv-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 22px 22px;
+  margin-bottom: 20px;
+}
+
+.inv-section-title {
+  margin: 0 0 16px;
+  padding-left: 10px;
+  border-left: 3px solid var(--gold);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.inv-header-grid {
+  display: grid;
+  /* Date · Branch · Supplier (wide) · Bill No · Bill Date · Remarks (wide) · GST type, all on one row. */
+  grid-template-columns: 1fr 1fr 2fr 1fr 1fr 1.6fr 1.4fr;
+  gap: 14px 16px;
+  align-items: start;
+}
+
+.inv-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.inv-cell > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.inv-cell em {
+  color: var(--danger);
+  font-style: normal;
+}
+
+.inv-cell input:not([type='checkbox']),
+.inv-cell select {
+  height: 40px;
+  font-size: 14px;
+  padding: 0 12px;
+  border-radius: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.inv-cell input:not([type='checkbox']):focus,
+.inv-cell select:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(4, 68, 59, 0.12);
+}
+
+.inv-cell input::placeholder {
+  color: #9aa8a5;
+}
+
+/* Missing required value (shown after the first Create click). */
+.inv-invalid input:not([type='checkbox']),
+.inv-invalid select {
+  border-color: var(--danger);
+  background: #fff8f7;
+}
+
+.inv-invalid input:not([type='checkbox']):focus,
+.inv-invalid select:focus {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.15);
+}
+
+.inv-invalid > span {
+  color: var(--danger);
+}
+
+.inv-error {
+  font-size: 12px;
+  color: var(--danger);
+}
+
+/* ---------- Items ---------- */
+
+.inv-items-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.inv-items-bar h3 {
+  margin: 0;
+  padding-left: 10px;
+  border-left: 3px solid var(--gold);
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inv-count {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--brand-light);
+  color: var(--brand);
+}
+
+.inv-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.inv-item-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: var(--calc-bg);
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+}
+
+.inv-item-no.inv-item-no-error {
+  background: var(--danger);
+}
+
+.inv-item-no {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--brand);
+  color: #fff;
+}
+
+.inv-meta {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.inv-meta b {
+  color: var(--text);
+}
+
+.inv-pill {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--brand-light);
+  color: var(--brand);
+}
+
+.inv-item-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.inv-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.inv-icon-btn:hover {
+  color: var(--brand);
+  border-color: var(--brand);
+}
+
+.inv-icon-btn.danger:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.inv-item-body {
+  padding: 16px 18px 18px;
+}
+
+/*
+ * Photo + 11 field columns. Row 1: Category(2) SKU Qty Collection(2) Size Metal GrossWt NetWt DiamondType = 11.
+ * Row 2: Price MRP Discount SalePrice GST IGST (6) + Description(5) = 11.
+ */
+.inv-grid {
+  display: grid;
+  grid-template-columns: 52px repeat(11, minmax(0, 1fr));
+  gap: 12px 10px;
+  align-items: end;
+}
+
+.inv-grid .inv-cell > span {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.inv-cell-wide {
+  grid-column: span 2;
+}
+
+.inv-num {
+  text-align: right;
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+}
+
+.inv-readonly {
+  background: var(--calc-bg);
+  color: var(--muted);
+}
+
+/* IGST: a small checkbox centred in a box the same height as the inputs. */
+.inv-check-box {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.inv-check-box:hover,
+.inv-check-box.checked {
+  border-color: var(--brand);
+}
+
+.inv-check-box.checked {
+  background: var(--brand-light);
+}
+
+.inv-check {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #0b7a5c;
+}
+
+.inv-photo {
+  grid-row: span 2;
+  align-self: start;
+  margin-top: 21px;
+  width: 52px;
+  height: 52px;
+  border: 1.5px dashed #b9c8c4;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--calc-bg);
+  color: var(--muted);
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.inv-photo small {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.inv-photo:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.inv-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.inv-desc {
+  grid-column: span 5;
+}
+
+.inv-item-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.inv-item-summary b {
+  color: var(--text);
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+}
+
+.inv-item-summary strong {
+  color: var(--text);
+}
+
+.inv-accent,
+.inv-item-summary b.inv-accent {
+  color: var(--brand);
+}
+
+/* ---------- Totals ---------- */
+
+.inv-summary-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  padding: 16px 22px;
+  border-radius: 12px;
+  background: var(--brand-dark);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 14px;
+}
+
+.inv-summary-bar b {
+  color: #fff;
+}
+
+.inv-summary-right {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+}
+
+.inv-count-pill {
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: var(--gold);
+  color: var(--brand-dark);
+  font-weight: 700;
+}
+
+.inv-mono {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+}
+
+.inv-summary-bar b.inv-mint {
+  color: #8fe3c8;
+}
+
+.inv-total-pill {
+  padding: 10px 20px;
+  border-radius: 10px;
+  background: var(--gold);
+  color: var(--brand-dark);
+  font-size: 21px;
+  font-weight: 700;
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+}
+
+/* ---------- Footer ---------- */
+
+.inv-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 28px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.inv-footer b {
+  color: var(--text);
+}
+
+.inv-big {
+  font-size: 21px;
+}
+
+.inv-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.inv-footer-actions .btn {
+  height: 42px;
+  padding: 0 20px;
+}
+
+.inv-btn-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--gold);
+  color: var(--brand-dark);
+  cursor: pointer;
+}
+
+.inv-btn-gold:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.inv-btn-gold:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.inv-btn-lg {
+  height: 42px;
+  padding: 0 22px;
+}
+
+@media (max-width: 1200px) {
+  .inv-header-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Too narrow for 13 columns: let fields wrap and give Description its own full row. */
+  .inv-grid {
+    grid-template-columns: 52px repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .inv-desc {
+    grid-column: 2 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .inv-header-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .inv-overlay {
+    padding: 0;
+  }
+
+  .inv-modal {
+    max-height: 100vh;
+    height: 100vh;
+    border-radius: 0;
+  }
+
+  .inv-body {
+    padding: 16px;
+  }
+
+  .inv-cell-wide {
+    grid-column: span 1;
+  }
+
+  .inv-summary-right {
+    margin-left: 0;
+  }
+
+  .inv-footer {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 16px;
+  }
+
+  .inv-footer-actions > * {
+    flex: 1;
+  }
+}
+
+/* ---------- Packing-list style item (basic row, 3 panels, stone/diamond rows) ---------- */
+
+/* One line: Photo · Category(2) SKU Qty Size Collection(2) DiamondType(2) Description(3) = 12 columns. */
+.ic-basic {
+  display: grid;
+  grid-template-columns: 46px repeat(12, minmax(0, 1fr));
+  gap: 12px 10px;
+  align-items: end;
+}
+
+.ic-basic .inv-cell > span,
+.ic-panel .inv-cell > span {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.ic-span-2 {
+  grid-column: span 2;
+}
+
+/* Pendant / earring size: width × height side by side. */
+.ic-size-wh {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ic-size-wh input {
+  min-width: 0;
+}
+
+.ic-size-wh > span {
+  color: var(--muted);
+}
+
+.ic-desc {
+  grid-column: 2 / -1;
+}
+
+/* Metal, Labour & Charges and Pricing are stacked; each one is a single line: title, then its fields. */
+.ic-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.ic-panel {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  align-items: end;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px 12px;
+  background: #fbfdfc;
+}
+
+.ic-panel h4 {
+  align-self: center;
+  margin: 18px 0 0;
+}
+
+.ic-panel h4,
+.ic-rows-head h4 {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ic-panel-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px 12px;
+  align-items: end;
+}
+
+.ic-rows {
+  margin-top: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.ic-rows-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ic-rows-head h4 {
+  margin: 0;
+}
+
+.ic-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border: 1px dashed var(--brand);
+  border-radius: 8px;
+  background: var(--brand-light);
+  color: var(--brand);
+  cursor: pointer;
+}
+
+.ic-table {
+  margin-top: 10px;
+}
+
+.ic-table th {
+  padding: 6px 8px;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: none;
+  border-bottom: 1px solid var(--border);
+}
+
+.ic-table td {
+  padding: 6px 8px;
+  border-bottom: 0;
+}
+
+.ic-table input,
+.ic-table select {
+  height: 36px;
+  font-size: 14px;
+  padding: 0 10px;
+  border-radius: 8px;
+}
+
+.ic-table td.num input {
+  width: 100px;
+}
+
+.ic-table tr.inv-invalid input,
+.ic-table tr.inv-invalid select {
+  border-color: var(--danger);
+  background: #fff8f7;
+}
+
+.ic-amt {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (max-width: 1200px) {
+  .ic-basic {
+    grid-template-columns: 52px repeat(auto-fill, minmax(110px, 1fr));
+  }
+
+  .ic-panel-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .ic-span-2 {
+    grid-column: span 1;
+  }
+
+  .ic-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .ic-panel h4 {
+    margin: 0;
+  }
+
+  .ic-panel-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ic-rows {
+    overflow-x: auto;
+  }
+}
+
+/* ---------- Metal | Labour & Charges | Pricing on a single line ---------- */
+
+/* The item photo no longer needs two rows. */
+.ic-basic .inv-photo {
+  grid-row: auto;
+  margin-top: 0;
+}
+
+.ic-line {
+  display: grid;
+  grid-template-columns: 1fr;
+  margin-top: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fbfdfc;
+}
+
+.ic-group + .ic-group {
+  border-left: 1px solid var(--border);
+}
+
+.ic-group h4 {
+  margin: 0;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand);
+  background: var(--brand-light);
+  border-bottom: 1px solid var(--border);
+}
+
+.ic-group-fields {
+  display: grid;
+  gap: 8px;
+  padding: 8px 12px 10px;
+  align-items: end;
+}
+
+.ic-group-3 .ic-group-fields {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ic-group-4 .ic-group-fields {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.ic-group-5 .ic-group-fields {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.ic-group .inv-cell > span {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* A long label (e.g. "Metal Rate / Gram") wraps onto two lines instead of running into the next box. */
+.ic-group .inv-cell > span {
+  white-space: normal;
+  line-height: 1.25;
+}
+
+.ic-group .inv-cell input:not([type='checkbox']),
+.ic-group .inv-cell select {
+  height: 36px;
+  padding: 0 8px;
+  font-size: 13px;
+}
+
+.ic-group .inv-check-box {
+  height: 36px;
+}
+
+@media (max-width: 1200px) {
+  .ic-line {
+    grid-template-columns: 1fr;
+  }
+
+  .ic-group + .ic-group {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+}
+
+@media (max-width: 700px) {
+  .ic-group-3 .ic-group-fields,
+  .ic-group-4 .ic-group-fields,
+  .ic-group-5 .ic-group-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Header shown read-only while editing a single item. */
+.inv-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.inv-fieldset:disabled input,
+.inv-fieldset:disabled select {
+  background: var(--calc-bg);
+  color: var(--muted);
+}
+
+.inv-locked {
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+}
+
+/* Invoice-level GST type switch in the header. */
+.inv-igst {
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.inv-igst .inv-check {
+  flex-shrink: 0;
+}
+
+/* ---------- Single item edit ---------- */
+
+.inv-modal.inv-modal-item {
+  max-width: 1500px;
+}
+
+.ie-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ie-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.ie-chip .icon {
+  color: var(--muted);
+}
+
+.ie-chip-tax {
+  background: var(--brand-light);
+  border-color: transparent;
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.inv-item-embedded {
+  border: 0;
+  background: none;
+  margin-bottom: 0;
+}
+
+.inv-item-embedded .inv-item-body {
+  padding: 0;
+}
+
+.ie-total {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 16px;
+  color: var(--muted);
+}
+
+.ie-total b {
+  color: var(--text);
+}
+
+.ic-span-3 {
+  grid-column: span 3;
+}
+
+.inv-cell input.inv-sku {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+@media (max-width: 700px) {
+  .ic-span-3 {
+    grid-column: span 1;
+  }
+}
+
+/* ---------- Compact first line (same size as the Metal / Labour / Pricing line) ---------- */
+
+.ic-basic {
+  gap: 10px 8px;
+}
+
+.ic-basic .inv-cell input:not([type='checkbox']),
+.ic-basic .inv-cell select {
+  height: 36px;
+  padding: 0 8px;
+  font-size: 13px;
+}
+
+.ic-basic .inv-cell > span {
+  font-size: 11px;
+}
+
+.ic-basic .inv-photo {
+  width: 46px;
+  height: 46px;
+}
+
+/* "/ ct" or "/ pc" under a stone rate, and "2 ct × 5500" under its amount. */
+.ic-unit {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ---------- Compact item card: smaller boxes and tighter spacing so a whole item fits on screen ---------- */
+
+.inv-item-head {
+  padding: 8px 14px;
+}
+
+.inv-item-body {
+  padding: 10px 14px 12px;
+}
+
+.inv-item .ic-basic {
+  gap: 6px 8px;
+}
+
+.inv-item .inv-cell {
+  gap: 3px;
+}
+
+.inv-item .inv-cell input:not([type='checkbox']),
+.inv-item .inv-cell select,
+.inv-item .ic-table input,
+.inv-item .ic-table select,
+.inv-item .sb-btn,
+.inv-item .inv-check-box {
+  height: 30px;
+  font-size: 12.5px;
+}
+
+.inv-item .inv-cell > span {
+  font-size: 10.5px;
+}
+
+.inv-item .ic-basic .inv-photo {
+  width: 40px;
+  height: 40px;
+}
+
+.inv-item .ic-line {
+  margin-top: 8px;
+}
+
+.inv-item .ic-group h4 {
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+.inv-item .ic-group-fields {
+  gap: 6px;
+  padding: 6px 10px 8px;
+}
+
+.inv-item .ic-rows {
+  margin-top: 8px;
+  padding: 6px 12px;
+}
+
+.inv-item .ic-rows-head h4 {
+  font-size: 12px;
+}
+
+.inv-item .ic-add {
+  padding: 3px 9px;
+  font-size: 12px;
+}
+
+.inv-item .ic-table th {
+  padding: 4px 6px;
+  font-size: 10.5px;
+}
+
+.inv-item .ic-table td {
+  padding: 4px 6px;
+}
+
+.inv-item .cb {
+  margin-top: 8px;
+  padding: 6px 10px;
+}
+
+.inv-item .cb-step {
+  padding: 3px 7px;
+}
+
+/* ---------- Wider purchase popup, with metal, labour and charges in one box ---------- */
+
+.inv-modal-purchase {
+  max-width: 1840px;
+}
+
+.ic-group-7 .ic-group-fields {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+@media (max-width: 1200px) {
+  .ic-group-7 .ic-group-fields {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .ic-group-7 .ic-group-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

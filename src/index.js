@@ -2,12 +2,15 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import ProductPage from './components/ProductPage';
+import { skuFromPath } from './utils/productTag';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    {/* A scanned QR tag opens /p/<SKU>: the public product page, no sign-in. */}
+    {skuFromPath() ? <ProductPage sku={skuFromPath()} /> : <App />}
   </React.StrictMode>
 );
 

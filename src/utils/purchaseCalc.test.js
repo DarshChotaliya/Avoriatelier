@@ -40,3 +40,12 @@ test('totals apply discount, GST and round off', () => {
     roundOff: 0.33, netPurchaseAmount: 60770,
   });
 });
+
+test('a diamond parcel shows the average weight and price of one diamond', () => {
+  // 7 diamonds, 1.20 ct in all, ₹50,000 / ct → ₹60,000; one diamond ≈ 0.171 ct and ₹8,571.43.
+  const r = calcDiamond({ carat: '1.20', quantity: '7', ratePerCarat: '50000', discountPercent: '' });
+  expect(r.amount).toBe(60000);
+  expect(r.avgWeight).toBe(0.171);
+  expect(r.avgPrice).toBe(8571.43);
+  expect(calcDiamond({ carat: '1', quantity: '', ratePerCarat: '50000' }).avgPrice).toBe(0);
+});

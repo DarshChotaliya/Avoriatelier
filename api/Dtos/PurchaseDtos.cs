@@ -49,6 +49,7 @@ public class DiamondItemRequest
 {
     [MaxLength(50)] public string? PacketLotNo { get; set; }
     [MaxLength(50)] public string? Shape { get; set; }
+    [MaxLength(30)] public string? SizeMm { get; set; }
     [Range(0.001, 1_000_000)] public decimal Carat { get; set; }
     [MaxLength(50)] public string? Color { get; set; }
     [MaxLength(50)] public string? Clarity { get; set; }
@@ -56,6 +57,7 @@ public class DiamondItemRequest
     [MaxLength(50)] public string? Polish { get; set; }
     [MaxLength(50)] public string? Symmetry { get; set; }
     [MaxLength(50)] public string? Fluorescence { get; set; }
+    [MaxLength(20)] public string? CertificateLab { get; set; }
     [MaxLength(50)] public string? CertificateNo { get; set; }
     public DateOnly? CertificateDate { get; set; }
     [Range(0, int.MaxValue)] public int Quantity { get; set; }
@@ -127,9 +129,10 @@ public class PurchaseDto
 }
 
 public record DiamondItemDto(
-    int Id, string? PacketLotNo, string? Shape, decimal Carat, string? Color, string? Clarity, string? Cut,
-    string? Polish, string? Symmetry, string? Fluorescence, string? CertificateNo, DateOnly? CertificateDate,
-    int Quantity, decimal RatePerCarat, decimal DiscountPercent, decimal Amount);
+    int Id, string? PacketLotNo, string? Shape, string? SizeMm, decimal Carat, string? Color, string? Clarity, string? Cut,
+    string? Polish, string? Symmetry, string? Fluorescence, string? CertificateLab, string? CertificateNo,
+    DateOnly? CertificateDate,
+    int Quantity, decimal RatePerCarat, decimal DiscountPercent, decimal Amount, decimal AvgWeight, decimal AvgPrice);
 
 public record GoldItemDto(
     int Id, string? GoldType, string Purity, decimal GrossWeight, decimal StoneWeight, decimal NetWeight,

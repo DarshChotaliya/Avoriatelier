@@ -27,3 +27,12 @@ obj/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Uploaded product photos
+api/wwwroot/uploads/*
+!api/wwwroot/uploads/products/
+api/wwwroot/uploads/products/*
+!api/wwwroot/uploads/products/.gitkeep
+
+# VPS login for deploy/deploy_first_time.js (never commit)
+deploy/vps.local.json
