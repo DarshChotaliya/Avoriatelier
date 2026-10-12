@@ -26,7 +26,7 @@ const inRange = (date, from, to) => (!from || date >= from) && (!to || date <= t
 function PurchaseInvoicesPage({
   drafts, soldSkus, onChanged, onNew, onEdit, onEditItem, onView, canEdit = true, canDelete = true, metalTypes = [],
 }) {
-  const [view, setView] = useState('items');
+  const [view, setView] = useState('invoices');
   const [search, setSearch] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');

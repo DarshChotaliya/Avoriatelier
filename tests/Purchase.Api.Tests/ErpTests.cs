@@ -50,11 +50,11 @@ public class ErpTests
     };
 
     [Fact]
-    public void Hallmark_carries_18_percent_gst_and_the_jewellery_its_own_rate()
+    public void Gst_is_charged_on_the_whole_price_and_the_hallmark_carries_18_percent_on_top()
     {
         var item = new PurchaseInvoiceItem { Price = 72570m, Hallmark = 70m, GstPercent = 3m };
-        // 72,500 × 1.03 + 70 × 1.18 = 74,675 + 82.60
-        Assert.Equal(74757.60m, ErpCalculator.PriceWithGst(item));
+        // 72,570 × 1.03 + 70 × 18%
+        Assert.Equal(74759.70m, ErpCalculator.PriceWithGst(item));
     }
 
     [Fact]
@@ -232,6 +232,17 @@ public class ErpTests
             JsonSerializer.SerializeToElement(new { id = ring.Id, name = "Ring", shortCode = " rg " }), default);
         Assert.Equal("RG", category.ShortCode);
         Assert.Equal("CQ-RG-14-W-0350", (await _purchases.CreateAsync(Invoice(item), default)).Items[0].SkuNo);
+    }
+
+    [Fact]
+    public void Fixed_labour_is_the_typed_amount_instead_of_a_rate_per_gram()
+    {
+        var item = new PurchaseInvoiceItem { NetWeight = 0.474m, MetalRate = 246.98m, LabourRate = 500m, Hallmark = 140m };
+        Assert.Equal(237m, ErpCalculator.Labour(item));
+        Assert.Equal(494.07m, ErpCalculator.CostPerPiece(item));
+        item.LabourFixed = true;
+        Assert.Equal(500m, ErpCalculator.Labour(item));
+        Assert.Equal(757.07m, ErpCalculator.CostPerPiece(item));
     }
 
     [Fact]

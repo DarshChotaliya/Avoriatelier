@@ -48,6 +48,7 @@ public class PurchaseItemRequest
     [Range(0, 1_000_000)] public decimal NetWeight { get; set; }
     [Range(0, double.MaxValue)] public decimal MetalRate { get; set; }
     [Range(0, double.MaxValue)] public decimal LabourRate { get; set; }
+    public bool LabourFixed { get; set; }
     [Range(0, double.MaxValue)] public decimal LabourMinimum { get; set; }
     [Range(0, double.MaxValue)] public decimal Hallmark { get; set; }
     [Range(0, double.MaxValue)] public decimal OtherCharges { get; set; }
@@ -81,7 +82,7 @@ public record PurchaseItemDto(
     string MetalType, int Qty, decimal GrossWeight, decimal NetWeight, decimal MetalRate, decimal LabourRate,
     decimal LabourMinimum, decimal Hallmark, decimal OtherCharges, decimal Price, decimal Mrp, decimal Discount,
     decimal GstPercent, bool Igst, string? Description, string? Thumb, List<StoneRowDto> Stones,
-    List<DiamondRowDto> Diamonds);
+    List<DiamondRowDto> Diamonds, bool LabourFixed);
 
 public record PurchaseInvoiceDto(
     int Id, DateOnly PurchaseDate, string Branch, string SupplierName, string? SupplierInvoiceNo,

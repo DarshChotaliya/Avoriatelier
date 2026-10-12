@@ -56,15 +56,26 @@ function namesInUse(drafts, sales, orders) {
   };
 }
 
+// Every page the app can show. The open page is kept in the address (#purchases), so a refresh or the browser's
+// back button stays on it instead of returning to the dashboard.
+const PAGES = new Set([
+  ...NAV_SECTIONS.flatMap((s) => s.links.map((l) => l.page)).filter((p) => p !== 'masters'),
+  ...MASTER_TABS.map((t) => t.page),
+]);
+const pageFromAddress = () => {
+  const name = window.location.hash.replace(/^#\/?/, '');
+  return PAGES.has(name) ? name : 'dashboard';
+};
+
 function App() {
-  const [page, setPage] = useState('dashboard');
+  const [page, setPage] = useState(pageFromAddress);
   // Purchase Item (Dev_g module): { mode: 'list' | 'form' | 'view', id?: number }, plus the list's type filter.
   const [purchaseItemView, setPurchaseItemView] = useState({ mode: 'list' });
   const [purchaseItemType, setPurchaseItemType] = useState('');
   // Bumped after a save so the list behind the dialog reloads.
   const [purchaseItemVersion, setPurchaseItemVersion] = useState(0);
   // The Masters link reopens whichever master tab was used last.
-  const [lastMaster, setLastMaster] = useState('suppliers');
+  const [lastMaster, setLastMaster] = useState(() => (isMasterPage(pageFromAddress()) ? pageFromAddress() : 'suppliers'));
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // Desktop: icons-only sidebar, remembered per browser.
   const [collapsed, setCollapsed] = useState(() => {
@@ -240,6 +251,24 @@ function App() {
     });
     return [...byName.values()];
   }, [masters.customers, sales]);
+
+  useEffect(() => {
+    if (pageFromAddress() !== page) window.history.pushState(null, '', `#${page}`);
+  }, [page]);
+  useEffect(() => {
+    // Back / forward, or an address typed by hand.
+    const onMove = () => {
+      const next = pageFromAddress();
+      if (isMasterPage(next)) setLastMaster(next);
+      setPage(next);
+    };
+    window.addEventListener('popstate', onMove);
+    window.addEventListener('hashchange', onMove);
+    return () => {
+      window.removeEventListener('popstate', onMove);
+      window.removeEventListener('hashchange', onMove);
+    };
+  }, []);
 
   const navigate = (target) => {
     const next = target === 'masters' ? lastMaster : target;

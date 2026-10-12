@@ -146,6 +146,9 @@ public class PurchaseInvoiceItem
     public decimal NetWeight { get; set; }
     public decimal MetalRate { get; set; }
     public decimal LabourRate { get; set; }
+
+    /// <summary>Fixed labour: LabourRate is the labour of one piece as it is, not a rate per gram.</summary>
+    public bool LabourFixed { get; set; }
     public decimal LabourMinimum { get; set; }
     public decimal Hallmark { get; set; }
     public decimal OtherCharges { get; set; }

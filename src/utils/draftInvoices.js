@@ -50,7 +50,7 @@ export const renameSku = (oldSku, newSku) => purchaseInvoiceApi.renameSku(oldSku
 
 /**
  * One row per item for the Item View.
- *   Purch. (GST)  = (Price − Hallmark) × (1 + GST %) + Hallmark × 1.18   per piece
+ *   Purch. (GST)  = Price × (1 + GST %) + Hallmark × 18%   per piece
  *   Sale          = MRP − Discount             per piece
  *   Net Amt       = (Sale − Purch. (GST)) × Qty
  *   Net PR %      = Net Amt ÷ (Sale × Qty) × 100

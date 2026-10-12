@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import ComboBox from './ComboBox';
 import Icon from './Icon';
-import CostBreakdown from './CostBreakdown';
 import SelectBox from './SelectBox';
 import SizeField from './SizeField';
-import { calcInvoiceItem, diamondAmount, diamondRowChange, stoneAmount } from '../utils/invoiceCalc';
+import {
+  calcInvoiceItem, diamondAmount, diamondCtsPerPiece, diamondGrams, diamondRowChange, stoneAmount, weightCheck,
+} from '../utils/invoiceCalc';
 import { formatAmount, formatWeight } from '../utils/purchaseCalc';
 import { emptyDiamondRow, emptyStoneRow } from '../constants/purchaseOptions';
 import { STONE_PRICING } from '../constants/masterConfig';
@@ -21,6 +22,10 @@ function Cell({ label, required, invalid, className = '', children }) {
   );
 }
 
+const ReadOnly = ({ value, strong = false }) => (
+  <input value={value} readOnly tabIndex={-1} className={`inv-num inv-readonly${strong ? ' ic-total' : ''}`} />
+);
+
 /** `embedded` drops the card header (number, collapse, remove) when the item is edited on its own. */
 function InvoiceItemCard({
   index, item, masters, skuPreview, canRemove, errors, embedded = false, onChange, onRemove,
@@ -31,6 +36,7 @@ function InvoiceItemCard({
   const open = embedded || !collapsed || hasErrors;
   const [preview, setPreview] = useState(null);
   const c = calcInvoiceItem(item);
+  const wt = weightCheck(item);
 
   // Local preview of the chosen photo; freed when replaced or unmounted.
   useEffect(() => {
@@ -136,7 +142,7 @@ function InvoiceItemCard({
 
           {/* Metal, labour and charges in one box on one line (GST % comes from Bank & Settings) */}
           <div className="ic-line">
-            <section className="ic-group ic-group-7">
+            <section className="ic-group ic-group-10">
               <h4>Metal, Labour &amp; Charges</h4>
               <div className="ic-group-fields">
                 <Cell label="Quality" required invalid={errors.metalType}>
@@ -146,10 +152,40 @@ function InvoiceItemCard({
                 <Cell label="Gross Wt (g)">{num('grossWeight')}</Cell>
                 <Cell label="Net Wt (g)" required invalid={errors.netWeight}>{num('netWeight')}</Cell>
                 <Cell label="Metal Rate / Gram">{num('metalRate')}</Cell>
-                <Cell label="Labour / g">{num('labourRate')}</Cell>
+                <Cell label="Metal Amt"><ReadOnly value={formatAmount(c.metal)} /></Cell>
+                {/* Fix ticked: the typed labour is the amount for the piece, not a rate per gram. */}
+                <div className={`inv-cell ic-labour${item.labourFixed ? ' fixed' : ''}`}>
+                  <span>{item.labourFixed ? 'Labour (fixed ₹)' : 'Labour / g'}</span>
+                  <div className="ic-labour-row">
+                    <input type="number" min="0" step="any" className="inv-num" value={item.labourRate}
+                      onChange={set('labourRate')} aria-label={item.labourFixed ? 'Fixed labour' : 'Labour per gram'} />
+                    <label className="ic-fix" title="Fixed labour: use this amount as it is, not × net weight">
+                      <input type="checkbox" className="inv-check" checked={Boolean(item.labourFixed)}
+                        onChange={set('labourFixed')} />
+                      Fix
+                    </label>
+                  </div>
+                </div>
+                <Cell label="Labour Amt"><ReadOnly value={formatAmount(c.labour)} /></Cell>
                 <Cell label="Hallmark">{num('hallmark')}</Cell>
                 <Cell label="Other ₹">{num('otherCharges')}</Cell>
+                <Cell label="Total"><ReadOnly value={formatAmount(c.baseTotal)} strong /></Cell>
               </div>
+              {/* Gross Wt should be Net Wt + stones + diamonds (carats ÷ 5); it only warns, nothing is changed. */}
+              {wt && (
+                <p className={`ic-wt-check${wt.ok ? ' ok' : ''}`} role={wt.ok ? undefined : 'alert'}>
+                  <Icon name={wt.ok ? 'check' : 'info'} size={13} />
+                  {wt.ok ? 'Weight check OK: ' : 'Weight mismatch: '}
+                  Net {formatWeight(wt.net)} + Stone {formatWeight(wt.stones)} + Diamond {formatWeight(wt.diamonds)}
+                  {' = '}<b>{formatWeight(wt.expected)} g</b>
+                  {wt.ok ? ' matches Gross Wt.' : (
+                    <>
+                      , but Gross Wt is <b>{formatWeight(wt.gross)} g</b>
+                      {' '}({formatWeight(Math.abs(wt.diff))} g {wt.diff < 0 ? 'less' : 'more'}).
+                    </>
+                  )}
+                </p>
+              )}
             </section>
           </div>
 
@@ -167,14 +203,15 @@ function InvoiceItemCard({
                   <tr>
                     <th>Stone</th>
                     <th>Color</th>
-                    <th>Shape</th>
-                    <th>Pricing</th>
-                    <th>Size</th>
-                    <th className="num">Pcs</th>
-                    <th className="num">Wt (ct)</th>
-                    <th className="num">Rate</th>
-                    <th className="num">Amount</th>
-                    <th aria-label="Remove" />
+                    <th className="ic-w-sel">Shape</th>
+                    <th className="ic-w-sel">Pricing</th>
+                    <th className="ic-w-size">Size</th>
+                    <th className="num ic-w-pcs">Pcs</th>
+                    <th className="num ic-w-num">Wt (ct)</th>
+                    <th className="num ic-w-num">Rate</th>
+                    <th className="num ic-w-calc" title="Wt (ct) ÷ 5">Stone Wt (g)</th>
+                    <th className="num ic-w-num">Amount</th>
+                    <th className="ic-w-del" aria-label="Remove" />
                   </tr>
                 </thead>
                 <tbody>
@@ -206,15 +243,21 @@ function InvoiceItemCard({
                             title={perPc ? 'Total weight of all pieces (for the record only)' : 'Weight in carats'} />
                         </td>
                         <td className="num">
-                          <input type="number" min="0" step="any" className="inv-num" value={s.rate} onChange={setS('rate')}
-                            title={perPc ? 'Rate per piece' : 'Rate per carat'} />
-                          <small className="ic-unit">{perPc ? '/ pc' : '/ ct'}</small>
+                          <div className="ic-rate">
+                            <input type="number" min="0" step="any" className="inv-num" value={s.rate} onChange={setS('rate')}
+                              title={perPc ? 'Rate per piece' : 'Rate per carat'} />
+                            <small>{perPc ? '/ pc' : '/ ct'}</small>
+                          </div>
                         </td>
-                        <td className="num ic-amt">
-                          ₹{formatAmount(stoneAmount(s))}
-                          <small className="ic-unit">
-                            {perPc ? `${s.pcs || 0} pcs × ${s.rate || 0}` : `${s.weight || 0} ct × ${s.rate || 0}`}
-                          </small>
+                        {/* The row's weight in grams (1 carat = 0.2 g), as on the diamond rows. */}
+                        <td className="num">
+                          <input readOnly tabIndex={-1} className="inv-num inv-readonly" aria-label="Stone weight in grams"
+                            value={formatWeight(diamondGrams(s))} title="Wt (ct) ÷ 5" />
+                        </td>
+                        <td className="num">
+                          <input readOnly tabIndex={-1} className="inv-num inv-readonly" value={formatAmount(stoneAmount(s))}
+                            aria-label="Stone amount"
+                            title={perPc ? `${s.pcs || 0} pcs × ${s.rate || 0}` : `${s.weight || 0} ct × ${s.rate || 0}`} />
                         </td>
                         <td>
                           <button type="button" className="inv-icon-btn danger" aria-label="Remove stone"
@@ -242,14 +285,16 @@ function InvoiceItemCard({
               <table className="ic-table">
                 <thead>
                   <tr>
-                    <th>Shape</th>
                     <th>Diamond Type</th>
-                    <th>Size (mm)</th>
-                    <th className="num">Pcs</th>
-                    <th className="num">Rate / ct</th>
-                    <th className="num">Wt (ct)</th>
-                    <th className="num">Amount</th>
-                    <th aria-label="Remove" />
+                    <th>Shape</th>
+                    <th className="ic-w-size">Size (mm)</th>
+                    <th className="num ic-w-pcs">Pcs</th>
+                    <th className="num ic-w-num">Rate / ct</th>
+                    <th className="num ic-w-num">Wt (ct)</th>
+                    <th className="num ic-w-calc" title="Wt (ct) ÷ Pcs">Cts</th>
+                    <th className="num ic-w-calc" title="Wt (ct) ÷ 5">Dia Wt (g)</th>
+                    <th className="num ic-w-num">Amount</th>
+                    <th className="ic-w-del" aria-label="Remove" />
                   </tr>
                 </thead>
                 <tbody>
@@ -263,20 +308,29 @@ function InvoiceItemCard({
                     return (
                       // Rows have no id until saved, so the index is the key.
                       <tr key={i} className={errors[`diamond${i}`] ? 'inv-invalid' : undefined}>
-                        {/* The shape is kept in the row's `code` (older rows hold supplier codes such as RND). */}
-                        <td>
-                          <SelectBox value={d.code ?? ''} onChange={(v) => changeRow('diamonds', i, { code: v })}
-                            options={(masters.diamondShapes ?? []).map((sh) => sh.name)} allowEmpty placeholder="— Shape —" aria-label="Diamond shape" />
-                        </td>
                         <td>
                           <SelectBox value={d.diamondType ?? ''} onChange={(v) => changeRow('diamonds', i, { diamondType: v })}
                             options={masters.diamondTypes.map((t) => t.name)} allowEmpty placeholder="— Type —"
                             aria-label="Diamond type" />
                         </td>
+                        {/* The shape is kept in the row's `code` (older rows hold supplier codes such as RND). */}
+                        <td>
+                          <SelectBox value={d.code ?? ''} onChange={(v) => changeRow('diamonds', i, { code: v })}
+                            options={(masters.diamondShapes ?? []).map((sh) => sh.name)} allowEmpty placeholder="— Shape —" aria-label="Diamond shape" />
+                        </td>
                         <td><input placeholder="e.g. 2.5" value={d.size} onChange={setD('size')} maxLength={50} /></td>
                         <td className="num"><input type="number" min="0" step="1" className="inv-num" value={d.pcs} onChange={setD('pcs')} /></td>
                         <td className="num"><input type="number" min="0" step="any" className="inv-num" value={d.rate} onChange={calcD('rate')} /></td>
                         <td className="num"><input type="number" min="0" step="any" className="inv-num" value={d.weight} onChange={calcD('weight')} /></td>
+                        {/* Worked out from the weight: carats of one diamond, and the row's weight in grams. */}
+                        <td className="num">
+                          <input readOnly tabIndex={-1} className="inv-num inv-readonly" aria-label="Carats per piece"
+                            value={formatWeight(diamondCtsPerPiece(d))} title="Wt (ct) ÷ Pcs" />
+                        </td>
+                        <td className="num">
+                          <input readOnly tabIndex={-1} className="inv-num inv-readonly" aria-label="Diamond weight in grams"
+                            value={formatWeight(diamondGrams(d))} title="Wt (ct) ÷ 5" />
+                        </td>
                         <td className="num">
                           <input type="number" min="0" step="any" className="inv-num" value={amount} onChange={calcD('amount')}
                             aria-label="Diamond amount" title="Type the bill amount; then the rate gives the weight or the weight gives the rate" />
@@ -295,7 +349,6 @@ function InvoiceItemCard({
             )}
           </div>
 
-          <CostBreakdown item={item} c={c} />
         </div>
       )}
     </div>

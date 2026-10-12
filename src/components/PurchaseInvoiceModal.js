@@ -99,9 +99,11 @@ export const toInvoicePayload = (header, items, diamondTypes = []) => ({
         weight: num(d.weight), rate: num(d.rate),
       })),
       stones: i.stones.map((s) => ({
-        stoneType: s.stoneType, pricing: s.pricing, pcs: num(s.pcs), weight: num(s.weight), rate: num(s.rate),
+        stoneName: text(s.stoneName), color: text(s.color), stoneType: s.stoneType, pricing: s.pricing,
+        size: text(s.size), pcs: num(s.pcs), weight: num(s.weight), rate: num(s.rate),
       })),
       labourRate: num(i.labourRate),
+      labourFixed: Boolean(i.labourFixed),
       labourMinimum: num(i.labourMinimum),
       hallmark: num(i.hallmark),
       otherCharges: num(i.otherCharges),
@@ -379,7 +381,7 @@ function PurchaseInvoiceModal({
           {single ? (
             <div className="ie-total">
               <span>Cost / pc <b className="inv-mono">₹{formatAmount(singleCost.costPerPiece)}</b></span>
-              <span>× {single.qty || 0}</span>
+              {num(single.qty) > 1 && <span>× {single.qty}</span>}
               <span>GST <b className="inv-mono">₹{formatAmount(singleCost.gstAmount)}</b></span>
               <span>Gross <b className="inv-mono inv-big">₹{formatAmount(singleCost.grossAmount)}</b></span>
             </div>

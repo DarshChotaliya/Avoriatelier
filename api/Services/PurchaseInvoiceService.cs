@@ -269,6 +269,7 @@ public class PurchaseInvoiceService : IPurchaseInvoiceService
         e.NetWeight = r.NetWeight;
         e.MetalRate = r.MetalRate;
         e.LabourRate = r.LabourRate;
+        e.LabourFixed = r.LabourFixed;
         e.LabourMinimum = r.LabourMinimum;
         e.Hallmark = r.Hallmark;
         e.OtherCharges = r.OtherCharges;
@@ -325,7 +326,7 @@ public class PurchaseInvoiceService : IPurchaseInvoiceService
             i.Diamonds.OrderBy(d => d.SortOrder).Select(d => new DiamondRowDto
             {
                 Code = d.Code, DiamondType = d.DiamondType, Size = d.Size, Pcs = d.Pcs, Weight = d.Weight, Rate = d.Rate,
-            }).ToList())).ToList(),
+            }).ToList(), i.LabourFixed)).ToList(),
         p.CreatedBy, p.UpdatedBy);
 }
 

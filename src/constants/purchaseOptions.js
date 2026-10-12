@@ -60,7 +60,7 @@ export const emptyInvoiceItem = (settings = {}) => ({
   photo: null, category: '', designCode: '', qty: '', collection: '', size: '', diamondType: '',
   metalType: '', grossWeight: '', netWeight: '', metalRate: '',
   diamonds: [], stones: [],
-  labourRate: '', labourMinimum: '', hallmark: '', otherCharges: '',
+  labourRate: '', labourFixed: false, labourMinimum: '', hallmark: '', otherCharges: '',
   mrp: '', discount: '', gstPercent: String(settings.defaultGstPercent ?? 3), igst: false, description: '',
 });
 

@@ -1046,6 +1046,10 @@ namespace Purchase.Api.Data.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("igst");
 
+                    b.Property<bool>("LabourFixed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("labour_fixed");
+
                     b.Property<decimal>("LabourMinimum")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")

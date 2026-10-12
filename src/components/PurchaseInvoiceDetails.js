@@ -64,7 +64,7 @@ function ItemDetails({ item, index, showHeader }) {
         <div className="pdi-group">
           <h4>Labour &amp; Charges</h4>
           <div className="pd-grid">
-            <Info label="Labour / g">{money(item.labourRate)}</Info>
+            <Info label={item.labourFixed ? 'Labour (fixed)' : 'Labour / g'}>{money(item.labourRate)}</Info>
             <Info label="Labour Amount">{money(c.labour)}</Info>
             <Info label="Hallmark">{money(item.hallmark)}</Info>
             <Info label="Other">{money(item.otherCharges)}</Info>
