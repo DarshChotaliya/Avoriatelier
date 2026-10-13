@@ -1392,3 +1392,13 @@
   background: none;
   color: #0b7a5c;
 }
+
+/* "3 items saved" beside the Items title after Add Item. */
+.inv-saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0b7a5c;
+}

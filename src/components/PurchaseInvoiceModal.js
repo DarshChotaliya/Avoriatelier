@@ -58,7 +58,8 @@ export function invoiceToForm(invoice, settings) {
     const form = { ...base };
     Object.keys(base).forEach((k) => {
       if (k === 'photo' || k === 'diamonds' || k === 'stones' || k === 'igst') return;
-      if (i[k] !== undefined) form[k] = str(i[k]);
+      // Ticks stay true / false: as text, "false" would count as ticked.
+      if (i[k] !== undefined) form[k] = typeof base[k] === 'boolean' ? Boolean(i[k]) : str(i[k]);
     });
     return {
       ...form,
@@ -120,6 +121,10 @@ export const toInvoicePayload = (header, items, diamondTypes = []) => ({
   }),
 });
 
+// Keys for unsaved items, so each card keeps its own state (photo preview, collapsed) when a new one is put on top.
+let rowKeys = 0;
+const newRowKey = () => { rowKeys += 1; return `new-${rowKeys}`; };
+
 const REQUIRED_ITEM_FIELDS = ['category', 'diamondType', 'metalType'];
 
 /** Field → true for every problem; used to highlight fields instead of browser popups. */
@@ -170,13 +175,17 @@ function HeaderField({ label, required, invalid, className = '', children }) {
  * edited: the header is shown read-only and items cannot be added or removed.
  */
 function PurchaseInvoiceModal({
-  masters, settings, invoice, itemOnly = false, takenSkus = [], skuSettings = DEFAULT_SKU_SETTINGS, onSubmit, onClose,
+  masters, settings, invoice, itemOnly = false, takenSkus = [], skuSettings = DEFAULT_SKU_SETTINGS, onSubmit, onSaveDraft,
+  onClose,
 }) {
   const [initial] = useState(() => (invoice ? invoiceToForm(invoice, settings) : null));
   const [header, setHeader] = useState(() => initial?.header ?? emptyHeader(masters.branches));
-  const [items, setItems] = useState(() => initial?.items ?? [emptyInvoiceItem(settings)]);
+  const [items, setItems] = useState(() => initial?.items ?? [{ ...emptyInvoiceItem(settings), rowKey: newRowKey() }]);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  // Add Item saves what is typed so far, so the invoice exists in the database from the first item on.
+  const [savedId, setSavedId] = useState(invoice?.id ?? null);
+  const [savedNote, setSavedNote] = useState('');
   // Errors are only shown after the first Create click, then update live as fields are filled.
   const [showErrors, setShowErrors] = useState(false);
 
@@ -225,24 +234,51 @@ function PurchaseInvoiceModal({
   };
   const changeItem = (index, changes) =>
     setItems((list) => list.map((it, i) => (i === index ? { ...it, ...changes } : it)));
-  const addItem = () => setItems((list) => [...list, { ...emptyInvoiceItem(settings), igst: header.igst }]);
-  const removeItem = (index) => setItems((list) => list.filter((_, i) => i !== index));
+  const showProblems = (message) => {
+    setShowErrors(true);
+    setError(message);
+    // Focus the first highlighted field once it has rendered.
+    requestAnimationFrame(() => {
+      document.querySelector('.inv-modal .inv-invalid input, .inv-modal .inv-invalid select')?.focus();
+    });
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  /**
+   * Add Item first saves the items typed so far (so a power cut or a closed browser loses at most the item being
+   * typed), then opens a new one at the top, where the user is looking.
+   */
+  const addItem = async () => {
     if (validation.count > 0) {
-      setShowErrors(true);
-      setError(`Please fix the ${validation.count} highlighted field${validation.count === 1 ? '' : 's'}.`);
-      // Focus the first highlighted field once it has rendered.
-      requestAnimationFrame(() => {
-        document.querySelector('.inv-modal .inv-invalid input, .inv-modal .inv-invalid select')?.focus();
-      });
+      showProblems('Complete the highlighted fields first: an item is saved before the next one is added.');
       return;
     }
     setError('');
     setSaving(true);
     try {
-      await onSubmit(toInvoicePayload(header, items, masters.diamondTypes), items);
+      const saved = await onSaveDraft(toInvoicePayload(header, items, masters.diamondTypes), items, savedId);
+      setSavedId(saved.id);
+      // The saved items come back with their id and SKU, so the next save updates them instead of adding copies.
+      const stored = invoiceToForm(saved, settings).items;
+      setItems([{ ...emptyInvoiceItem(settings), igst: header.igst, rowKey: newRowKey() }, ...stored]);
+      setShowErrors(false);
+      setSavedNote(`${stored.length} item${stored.length === 1 ? '' : 's'} saved`);
+    } catch (err) {
+      setError(err.message);
+    }
+    setSaving(false);
+  };
+  const removeItem = (index) => setItems((list) => list.filter((_, i) => i !== index));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (validation.count > 0) {
+      showProblems(`Please fix the ${validation.count} highlighted field${validation.count === 1 ? '' : 's'}.`);
+      return;
+    }
+    setError('');
+    setSaving(true);
+    try {
+      await onSubmit(toInvoicePayload(header, items, masters.diamondTypes), items, savedId);
     } catch (err) {
       setError(err.message);
       setSaving(false);
@@ -331,8 +367,12 @@ function PurchaseInvoiceModal({
 
           {!itemOnly && (
             <div className="inv-items-bar">
-              <h3>Items <span className="inv-count">{items.length}</span></h3>
-              <button type="button" className="inv-btn-gold" onClick={addItem}>
+              <h3>
+                Items <span className="inv-count">{items.length}</span>
+                {savedNote && <span className="inv-saved"><Icon name="check" size={13} /> {savedNote}</span>}
+              </h3>
+              <button type="button" className="inv-btn-gold" onClick={addItem} disabled={saving}
+                title="Saves the items typed so far, then opens a new one">
                 <Icon name="plusCircle" size={16} />
                 Add Item
               </button>
@@ -341,8 +381,8 @@ function PurchaseInvoiceModal({
 
           {items.map((item, i) => (
             <InvoiceItemCard
-              // Items have no id until saved, so the index is the key.
-              key={i}
+              // Saved items have an id, new ones a row key (see newRowKey).
+              key={item.id ?? item.rowKey ?? i}
               index={i}
               item={item}
               masters={masters}

@@ -1,4 +1,8 @@
-import { invoiceToForm, isInterState, toInvoicePayload, validateInvoice } from './PurchaseInvoiceModal';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import PurchaseInvoiceModal, {
+  invoiceToForm, isInterState, toInvoicePayload, validateInvoice,
+} from './PurchaseInvoiceModal';
 import { emptyInvoiceItem, emptyStoneRow } from '../constants/purchaseOptions';
 
 const header = { purchaseDate: '2026-10-05', branch: 'SURAT', supplierName: 'LURBA LUXURRY PVT LTD' };
@@ -65,4 +69,41 @@ test('IGST is decided per invoice: by supplier state, and old per-item IGST carr
   const { header: h, items } = invoiceToForm(saved, settings);
   expect(h.igst).toBe(true);
   expect(items.every((i) => i.igst)).toBe(true);
+});
+
+test('Add Item saves the items typed so far, then opens a new one at the top', async () => {
+  const masters = { branches: [{ name: 'SURAT' }], suppliers: [], categories: [{ name: 'Earring' }], collections: [],
+    metalTypes: [{ name: 'S925' }], diamondTypes: [{ name: 'AD' }], stoneTypes: [], stoneNames: [], diamondShapes: [] };
+  const stored = { id: 7, purchaseDate: '2026-10-05', branch: 'SURAT', supplierName: 'LURBA', igst: false,
+    items: [{ id: 1, skuNo: 'AVEA00001', category: 'Earring', diamondType: 'AD', metalType: 'S925', qty: 1,
+      grossWeight: 0.562, netWeight: 0.474, metalRate: 246.98, labourRate: 500, hallmark: 140, gstPercent: 3,
+      stones: [], diamonds: [] }] };
+  const onSaveDraft = jest.fn().mockResolvedValue(stored);
+  const onSubmit = jest.fn().mockResolvedValue();
+  render(<PurchaseInvoiceModal masters={masters} settings={settings} invoice={stored} onSaveDraft={onSaveDraft}
+    onSubmit={onSubmit} onClose={() => {}} />);
+
+  await userEvent.click(screen.getByRole('button', { name: /add item/i }));
+  expect(await screen.findByText('1 item saved')).toBeInTheDocument();
+  // Saved as the existing invoice (id 7) with its one item; the new blank item is first, the saved one below it.
+  expect(onSaveDraft).toHaveBeenCalledTimes(1);
+  expect(onSaveDraft.mock.calls[0][0].items).toHaveLength(1);
+  expect(onSaveDraft.mock.calls[0][2]).toBe(7);
+  const titles = screen.getAllByText(/^(New Item|Earring)$/, { selector: 'strong' }).map((el) => el.textContent);
+  expect(titles).toEqual(['New Item', 'Earring']);
+
+  // The blank item is not complete, so a second Add Item saves nothing and points at the fields.
+  await userEvent.click(screen.getByRole('button', { name: /add item/i }));
+  expect(onSaveDraft).toHaveBeenCalledTimes(1);
+  expect(screen.getByText(/Complete the highlighted fields first/)).toBeInTheDocument();
+});
+
+test('a saved item opens with the fixed-labour tick as it was saved (off stays off)', () => {
+  const saved = (labourFixed) => ({ purchaseDate: '2026-10-05', branch: 'SURAT', supplierName: 'LURBA', igst: false,
+    items: [{ id: 1, skuNo: 'AVKD00004', category: 'Kada', diamondType: 'AD', metalType: 'S925', qty: 1, netWeight: 12.277,
+      labourRate: 500, labourFixed, stones: [], diamonds: [] }] });
+  const off = invoiceToForm(saved(false), settings).items[0];
+  expect(off.labourFixed).toBe(false);
+  expect(toInvoicePayload(header, [off]).items[0].labourFixed).toBe(false);
+  expect(invoiceToForm(saved(true), settings).items[0].labourFixed).toBe(true);
 });

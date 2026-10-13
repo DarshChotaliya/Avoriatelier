@@ -279,7 +279,7 @@ function App() {
   };
   const closeDialog = () => setDialog(null);
 
-  const savePurchase = async (payload, items) => {
+  const savePurchase = async (payload, items, savedId = null) => {
     let fullPayload = payload;
     let photos = items.map((i) => i.photo);
     // Single-item edit: put the edited item back among the invoice's other, unchanged items.
@@ -289,9 +289,16 @@ function App() {
       fullPayload = { ...payload, items: stored.map((i) => (i.id === dialog.itemId ? edited : i)) };
       photos = stored.map((i) => (i.id === dialog.itemId ? items[0].photo : null));
     }
-    await savePurchaseInvoice(fullPayload, photos, dialog?.record?.id ?? null);
+    await savePurchaseInvoice(fullPayload, photos, savedId ?? dialog?.record?.id ?? null);
     await reloadPurchases();
     closeDialog();
+  };
+
+  // Add Item in the purchase popup: saves the items typed so far and keeps the popup open.
+  const savePurchaseDraft = async (payload, items, savedId) => {
+    const saved = await savePurchaseInvoice(payload, items.map((i) => i.photo), savedId);
+    await reloadPurchases();
+    return saved;
   };
 
   const openSale = async () => {
@@ -535,6 +542,7 @@ function App() {
           skuSettings={skuSettings}
           onClose={closeDialog}
           onSubmit={savePurchase}
+          onSaveDraft={savePurchaseDraft}
         />
       )}
       {dialog?.type === 'purchaseView' && (
