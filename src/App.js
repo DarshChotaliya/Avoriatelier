@@ -18,6 +18,7 @@ import MasterPage from './components/MasterPage';
 import SkuMasterPage from './components/SkuMasterPage';
 import InventoryPage from './components/InventoryPage';
 import DashboardPage from './components/DashboardPage';
+import PageLoader from './components/PageLoader';
 import { MASTER_PAGES } from './constants/masterConfig';
 import { loadPurchaseInvoices, renameSku, savePurchaseInvoice } from './utils/draftInvoices';
 import { deleteSale, loadSales, nextSaleNo, saveSale } from './utils/draftSales';
@@ -451,7 +452,13 @@ function App() {
 
   // ---------- signed out ----------
   if (auth.checking) {
-    return <div className="app-loading"><img src={`${process.env.PUBLIC_URL}/favicon.png`} alt="" /> Loading…</div>;
+    return (
+      <div className="app-loading" role="status">
+        <img src={`${process.env.PUBLIC_URL}/favicon.png`} alt="" />
+        <span className="pl-spinner" aria-hidden="true" />
+        Loading…
+      </div>
+    );
   }
   if (!auth.user) return <LoginPage setup={auth.needsSetup} onSignedIn={signedIn} />;
 
@@ -525,7 +532,7 @@ function App() {
               <button type="button" className="btn btn-secondary" onClick={() => setImportResult(null)}>Close</button>
             </div>
           )}
-          {loading ? <p className="muted">Loading…</p> : content}
+          {loading ? <PageLoader /> : content}
         </main>
       </div>
 
