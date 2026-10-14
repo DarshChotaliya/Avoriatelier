@@ -87,6 +87,9 @@ builder.Services.AddAuthorization(o =>
     o.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
 });
 
+// Lists are JSON of a few hundred items; compressing them makes page loads several times smaller.
+builder.Services.AddResponseCompression(o => o.EnableForHttps = true);
+
 builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddProblemDetails();
@@ -155,6 +158,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseResponseCompression();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();

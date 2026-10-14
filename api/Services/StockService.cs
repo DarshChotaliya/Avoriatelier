@@ -53,7 +53,7 @@ public class StockService : IStockService
             i.SkuNo, i.Category, i.Collection, i.DesignCode,
             supplier ? i.PurchaseInvoice!.SupplierName : null, supplier ? i.PurchaseInvoice!.SupplierInvoiceNo : null,
             i.PurchaseInvoice!.PurchaseDate, i.PurchaseInvoice.CreatedAt, i.DiamondType, i.MetalType, i.NetWeight,
-            i.Mrp, i.Discount, i.Mrp - i.Discount, i.GstPercent, i.Photo, i.Qty,
+            i.Mrp, i.Discount, i.Mrp - i.Discount, i.GstPercent, ItemPhoto.Url(i), i.Qty,
             i.Qty - sold.GetValueOrDefault(i.SkuNo),
             cost ? ErpCalculator.PriceWithGst(i) : null,
             i.GrossWeight, metals.GetValueOrDefault(i.MetalType), i.Diamonds.Sum(d => d.Pcs), i.Diamonds.Sum(d => d.Weight),

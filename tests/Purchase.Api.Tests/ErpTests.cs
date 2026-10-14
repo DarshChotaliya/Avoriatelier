@@ -235,6 +235,29 @@ public class ErpTests
     }
 
     [Fact]
+    public async Task Lists_link_to_item_photos_and_a_link_sent_back_keeps_the_photo()
+    {
+        const string photo = "data:image/jpeg;base64,/9j/AAAA";
+        var item = LurbaItem();
+        item.Thumb = photo;
+        var saved = await _purchases.CreateAsync(Invoice(item), default);
+        var link = saved.Items[0].Thumb!;
+        Assert.StartsWith($"/api/purchase-items/{saved.Items[0].Id}/photo?v=", link);
+        Assert.Equal(photo, (await _db.PurchaseInvoiceItems.SingleAsync()).Photo);
+
+        // Saving the invoice as the list sent it (photo as a link) leaves the photo alone; an empty one removes it.
+        var again = Invoice(item);
+        again.Items[0].Id = saved.Items[0].Id;
+        again.Items[0].Thumb = link;
+        await _purchases.UpdateAsync(saved.Id, again, default);
+        Assert.Equal(photo, (await _db.PurchaseInvoiceItems.AsNoTracking().SingleAsync()).Photo);
+        Assert.Equal("image/jpeg", ItemPhoto.Decode(photo)!.Value.ContentType);
+        again.Items[0].Thumb = null;
+        await _purchases.UpdateAsync(saved.Id, again, default);
+        Assert.Null((await _db.PurchaseInvoiceItems.AsNoTracking().SingleAsync()).Photo);
+    }
+
+    [Fact]
     public void Fixed_labour_is_the_typed_amount_instead_of_a_rate_per_gram()
     {
         var item = new PurchaseInvoiceItem { NetWeight = 0.474m, MetalRate = 246.98m, LabourRate = 500m, Hallmark = 140m };

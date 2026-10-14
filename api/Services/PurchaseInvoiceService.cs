@@ -279,7 +279,8 @@ public class PurchaseInvoiceService : IPurchaseInvoiceService
         // GST type is chosen for the whole invoice in the app; items follow it.
         e.Igst = r.Igst;
         e.Description = Text(r.Description);
-        e.Photo = string.IsNullOrEmpty(r.Thumb) ? null : r.Thumb;
+        // A photo link sent back from a list means the photo is unchanged.
+        if (!ItemPhoto.IsLink(r.Thumb)) e.Photo = string.IsNullOrEmpty(r.Thumb) ? null : r.Thumb;
         e.Stones.AddRange(r.Stones.Select((s, i) => new PurchaseItemStone
         {
             SortOrder = i, StoneType = s.StoneType.Trim(),
@@ -316,7 +317,7 @@ public class PurchaseInvoiceService : IPurchaseInvoiceService
         p.Items.OrderBy(i => i.SortOrder).Select(i => new PurchaseItemDto(
             i.Id, i.SkuNo, i.Category, i.DesignCode, i.Collection, i.Size, i.DiamondType, i.MetalType, i.Qty,
             i.GrossWeight, i.NetWeight, i.MetalRate, i.LabourRate, i.LabourMinimum, i.Hallmark, i.OtherCharges, i.Price,
-            i.Mrp, i.Discount, i.GstPercent, i.Igst, i.Description, i.Photo,
+            i.Mrp, i.Discount, i.GstPercent, i.Igst, i.Description, ItemPhoto.Url(i),
             i.Stones.OrderBy(s => s.SortOrder).Select(s => new StoneRowDto
             {
                 StoneType = s.StoneType, Pricing = s.Pricing, StoneName = s.StoneName, Color = s.Color, Size = s.Size,

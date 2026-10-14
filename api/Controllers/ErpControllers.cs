@@ -1,7 +1,9 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Purchase.Api.Auth;
+using Purchase.Api.Data;
 using Purchase.Api.Dtos;
 using Purchase.Api.Services;
 
@@ -243,4 +245,28 @@ public class SkuSettingsController : ControllerBase
     [HttpPut]
     [Authorize(Policy = Permissions.PurchaseEdit)]
     public Task<SkuSettingDto> Save(SkuSettingRequest request, CancellationToken ct) => _service.SaveAsync(request, ct);
+}
+
+/// <summary>One purchase item's photo, linked from the purchase and stock lists (see ItemPhoto).</summary>
+[ApiController]
+[Route("api/purchase-items")]
+[Authorize]
+public class PurchaseItemPhotosController : ControllerBase
+{
+    private readonly PurchaseDbContext _db;
+
+    public PurchaseItemPhotosController(PurchaseDbContext db)
+    {
+        _db = db;
+    }
+
+    [HttpGet("{id:int}/photo")]
+    public async Task<IActionResult> Get(int id, CancellationToken ct)
+    {
+        var photo = await _db.PurchaseInvoiceItems.Where(i => i.Id == id).Select(i => i.Photo).FirstOrDefaultAsync(ct);
+        if (ItemPhoto.Decode(photo) is not { } image) return NotFound();
+        // The link changes with the photo (v=...), so the browser may keep it.
+        Response.Headers.CacheControl = "private, max-age=31536000, immutable";
+        return File(image.Bytes, image.ContentType);
+    }
 }

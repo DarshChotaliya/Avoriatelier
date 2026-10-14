@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import ComboBox from './ComboBox';
 import Icon from './Icon';
 import SelectBox from './SelectBox';
 import SizeField from './SizeField';
@@ -223,9 +222,10 @@ function InvoiceItemCard({
                       // Rows have no id until saved, so the index is the key.
                       <tr key={i} className={bad ? 'inv-invalid' : undefined}>
                         <td>
-                          <ComboBox placeholder="e.g. CZ" value={s.stoneName ?? ''}
-                            options={(masters.stoneNames ?? []).map((n) => n.name)}
-                            onChange={(v) => changeRow('stones', i, { stoneName: v })} maxLength={100} aria-label="Stone" />
+                          {/* Only the names in Masters → Stone Names; an older name stays visible until it is changed. */}
+                          <SelectBox value={s.stoneName ?? ''} placeholder="— Stone —" aria-label="Stone"
+                            options={[...new Set([...(masters.stoneNames ?? []).map((n) => n.name), s.stoneName].filter(Boolean))]}
+                            onChange={(v) => changeRow('stones', i, { stoneName: v })} />
                         </td>
                         <td><input placeholder="e.g. Red" value={s.color ?? ''} onChange={setS('color')} maxLength={50} /></td>
                         <td>
