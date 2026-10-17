@@ -124,6 +124,7 @@ public static class ErpModel
             e.Property(x => x.UpdatedBy).HasMaxLength(50);
             e.Property(x => x.InvoiceNo).HasMaxLength(30).IsRequired();
             e.HasIndex(x => x.InvoiceNo).IsUnique();
+            e.Property(x => x.OrderNo).HasMaxLength(30);
             e.HasIndex(x => x.InvoiceDate);
             e.Property(x => x.Branch).HasMaxLength(100).IsRequired();
             e.Property(x => x.CustomerName).HasMaxLength(200).IsRequired();

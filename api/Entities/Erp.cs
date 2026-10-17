@@ -226,6 +226,9 @@ public class SalesInvoice
 
     /// <summary>Manual round-off on the bill (may be negative), e.g. −1 to make 1,06,531 payable as 1,06,530.</summary>
     public decimal RoundOff { get; set; }
+
+    /// <summary>The delivered customer order this bill is for (Quotation → Order → Sale Invoice); one bill per order.</summary>
+    public string? OrderNo { get; set; }
     public string? Notes { get; set; }
     public string? BillingAddress { get; set; }
     public string? ShippingAddress { get; set; }

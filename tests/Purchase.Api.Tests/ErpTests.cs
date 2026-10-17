@@ -258,6 +258,41 @@ public class ErpTests
     }
 
     [Fact]
+    public async Task A_sale_is_made_from_a_delivered_order_and_only_once()
+    {
+        var orders = new OrderService(_db, new SystemUser("owner"));
+        var order = await orders.CreateAsync(new OrderRequest
+        {
+            ClientName = "Riya", ClientOrderDate = new DateOnly(2026, 7, 1), Description = "CQ SET", Status = "In Production",
+        }, default);
+        var invoice = await _purchases.CreateAsync(Invoice(LurbaItem(qty: 2)), default);
+        var request = Sale(invoice.Items[0].SkuNo, 1);
+        request.OrderNo = order.OrderNo.ToLowerInvariant();
+
+        // Not delivered yet: no sales invoice. A made-up order number is refused too.
+        await Assert.ThrowsAsync<BusinessValidationException>(() => _sales.CreateAsync(request, default));
+        request.OrderNo = "ORD-99999";
+        await Assert.ThrowsAsync<BusinessValidationException>(() => _sales.CreateAsync(request, default));
+
+        // Delivered: the sale carries the order number; a second sale for the same order is refused.
+        await orders.UpdateAsync(order.Id, new OrderRequest
+        {
+            ClientName = "Riya", ClientOrderDate = new DateOnly(2026, 7, 1), Description = "CQ SET", Status = "Delivered",
+        }, default);
+        request.OrderNo = order.OrderNo;
+        request.OrderStatus = "PROCESSING"; // a delivered sale is closed; this one can still be changed
+        var sale = await _sales.CreateAsync(request, default);
+        Assert.Equal(order.OrderNo, sale.OrderNo);
+        var again = Sale(invoice.Items[0].SkuNo, 1);
+        again.OrderStatus = "PROCESSING";
+        again.OrderNo = order.OrderNo;
+        await Assert.ThrowsAsync<BusinessValidationException>(() => _sales.CreateAsync(again, default));
+
+        // Changing that sale later keeps its own order and is not blocked by itself.
+        Assert.Equal(order.OrderNo, (await _sales.UpdateAsync(sale.Id, request, default))!.OrderNo);
+    }
+
+    [Fact]
     public void Fixed_labour_is_the_typed_amount_instead_of_a_rate_per_gram()
     {
         var item = new PurchaseInvoiceItem { NetWeight = 0.474m, MetalRate = 246.98m, LabourRate = 500m, Hallmark = 140m };

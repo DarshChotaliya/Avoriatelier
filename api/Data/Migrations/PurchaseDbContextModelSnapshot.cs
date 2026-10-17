@@ -1540,6 +1540,11 @@ namespace Purchase.Api.Data.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("notes");
 
+                    b.Property<string>("OrderNo")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("order_no");
+
                     b.Property<string>("OrderStatus")
                         .IsRequired()
                         .HasMaxLength(30)

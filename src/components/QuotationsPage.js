@@ -72,7 +72,7 @@ export function printQuotation(q) {
 }
 
 function QuotationsPage({
-  quotations, onNew, onNewCustom, onEdit, onDelete, onCreateOrder, canCreate = true, canDelete = true,
+  quotations, onNew, onNewCustom, onEdit, onDelete, onCreateOrder, ordersByQuotation, canCreate = true, canDelete = true,
 }) {
   const [search, setSearch] = useState('');
   const q = search.trim().toLowerCase();
@@ -167,7 +167,12 @@ function QuotationsPage({
                   <td>
                     {/* Right-aligned so Print / Edit / Delete line up whether or not "Order" is shown. */}
                     <div className="qt-actions">
-                    {canCreate && x.status === 'Accepted' && (
+                    {x.status === 'Accepted' && ordersByQuotation?.get(x.quotationNo) && (
+                      <span className="qt-ordered" title="Order made from this quotation">
+                        {ordersByQuotation.get(x.quotationNo)}
+                      </span>
+                    )}
+                    {canCreate && x.status === 'Accepted' && !ordersByQuotation?.get(x.quotationNo) && (
                       <button type="button" className="qt-order-btn" title="Create an order from this quotation"
                         aria-label={`Create order from ${x.quotationNo}`} onClick={() => onCreateOrder(x)}>
                         <Icon name="clipboard" size={14} />

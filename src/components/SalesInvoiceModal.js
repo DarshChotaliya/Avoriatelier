@@ -7,7 +7,7 @@ import { MASTER_PAGES } from '../constants/masterConfig';
 import { calcSaleTotals, saleLineAmount } from '../utils/salesCalc';
 import { formatAmount, money, num } from '../utils/purchaseCalc';
 import {
-  ORDER_STATUSES, PAYMENT_METHODS, PAYMENT_STATUSES, SALES_CHANNELS, emptySaleLine,
+  PAYMENT_METHODS, SALES_CHANNELS, emptySaleLine,
 } from '../constants/salesOptions';
 import './PurchaseInvoice.css';
 import './SalesInvoice.css';
@@ -35,7 +35,34 @@ const emptyHeader = (branches) => ({
   billingAddress: '',
   shippingAddress: '',
   shippingSameAsBilling: true,
+  // Set when the bill is made from a delivered customer order.
+  orderNo: '',
 });
+
+/** What picking a SKU fills: the piece's description, metal, weights, diamond / stone pieces and its prices. */
+const stockLineFields = (s) => {
+  const show = (v) => (num(v) ? String(v) : '');
+  return {
+    skuNo: s.skuNo, netWeight: String(s.netWeight), mrp: String(s.mrp), discount: String(s.discount),
+    selling: String(s.salePrice), gstPercent: String(s.gstPercent || 3),
+    description: `AVORI ${[s.collection, s.category].filter(Boolean).join(' ')}`.toUpperCase(),
+    metalType: (s.metal ? `${s.metal} (${s.metalType})` : s.metalType ?? '').toUpperCase(),
+    grossWeight: show(s.grossWeight), diaPcs: show(s.diaPcs), diaWeight: show(s.diaWeight),
+    stonePcs: show(s.stonePcs), stoneWeight: show(s.stoneWeight),
+  };
+};
+
+/**
+ * The fields picking `s` fills on `line`. A line that came from an order / quotation keeps what it carries
+ * (description, metal, weight, the priced amounts), because those are the agreed values, not the stock's.
+ */
+const fieldsFor = (line, s) => {
+  const fields = stockLineFields(s);
+  (line.orderKeep ?? []).forEach((k) => {
+    if (String(line[k] ?? '').trim() !== '') fields[k] = line[k];
+  });
+  return fields;
+};
 
 /** Field → true for every problem, so fields can be highlighted instead of using browser popups. */
 export function validateSale(header, lines, stockBySku) {
@@ -109,13 +136,28 @@ const Select = ({ value, onChange, options }) => (
   <SelectBox value={value} onChange={(v) => onChange({ target: { value: v } })} options={options} />
 );
 
-/** New sale, or (with `invoice`) editing a saved one. */
-function SalesInvoiceModal({ invoice, invoiceNo, stock, customers, branches, onSubmit, onClose, onAddCustomer }) {
+/** New sale, or (with `invoice`) editing a saved one. `initial` starts a new sale from an order (see orderFlow.js). */
+function SalesInvoiceModal({
+  invoice, initial, invoiceNo, stock, customers, branches, onSubmit, onClose, onAddCustomer,
+}) {
   // Saved values come back as numbers / nulls; the form edits text.
   const asText = (o) => Object.fromEntries(Object.entries(o)
     .map(([k, v]) => [k, typeof v === 'number' ? String(v) : v ?? '']));
   const [header, setHeader] = useState(() => {
     const empty = emptyHeader(branches);
+    if (!invoice && initial) {
+      // The customer's saved details fill contact, city, state and address; what the order carries wins.
+      const known = customers.find((c) => c.name.toLowerCase() === initial.header.customerName.trim().toLowerCase());
+      const fromOrder = Object.fromEntries(Object.entries(initial.header).filter(([, v]) => v));
+      return {
+        ...empty,
+        ...(known && {
+          contactNo: known.contactNo ?? '', city: known.city ?? '', state: known.state ?? '',
+          billingAddress: known.address ?? '',
+        }),
+        ...fromOrder,
+      };
+    }
     if (!invoice) return empty;
     const saved = asText(invoice);
     return {
@@ -123,9 +165,18 @@ function SalesInvoiceModal({ invoice, invoiceNo, stock, customers, branches, onS
       shippingSameAsBilling: Boolean(invoice.shippingSameAsBilling),
     };
   });
-  const [lines, setLines] = useState(() => (invoice
-    ? invoice.lines.map((l) => ({ ...emptySaleLine(), ...asText(l), igst: Boolean(l.igst) }))
-    : [emptySaleLine()]));
+  const [lines, setLines] = useState(() => {
+    if (invoice) return invoice.lines.map((l) => ({ ...emptySaleLine(), ...asText(l), igst: Boolean(l.igst) }));
+    if (initial?.lines.length) {
+      // The order's lines, with the stock's details added where the SKU is already known.
+      return initial.lines.map((preset) => {
+        const line = { ...emptySaleLine(), ...preset };
+        const piece = stock.find((s) => s.skuNo === preset.skuNo);
+        return piece ? { ...line, ...fieldsFor(line, piece) } : line;
+      });
+    }
+    return [emptySaleLine()];
+  });
   // Closed until its title is clicked; a saved sale that has an address opens with it showing.
   const [addressOpen, setAddressOpen] = useState(() => Boolean(invoice?.billingAddress || invoice?.shippingAddress));
   const [showErrors, setShowErrors] = useState(false);
@@ -200,15 +251,7 @@ function SalesInvoiceModal({ invoice, invoiceNo, stock, customers, branches, onS
     if ('skuNo' in changes) {
       const s = stockBySku.get(changes.skuNo.trim());
       if (s && s.skuNo !== l.skuNo) {
-        const show = (v) => (num(v) ? String(v) : '');
-        Object.assign(next, {
-          skuNo: s.skuNo, netWeight: String(s.netWeight), mrp: String(s.mrp), discount: String(s.discount),
-          selling: String(s.salePrice), gstPercent: String(s.gstPercent || 3),
-          description: `AVORI ${[s.collection, s.category].filter(Boolean).join(' ')}`.toUpperCase(),
-          metalType: (s.metal ? `${s.metal} (${s.metalType})` : s.metalType ?? '').toUpperCase(),
-          grossWeight: show(s.grossWeight), diaPcs: show(s.diaPcs), diaWeight: show(s.diaWeight),
-          stonePcs: show(s.stonePcs), stoneWeight: show(s.stoneWeight),
-        });
+        Object.assign(next, fieldsFor(l, s));
       }
     }
     if ('mrp' in changes || 'discount' in changes) {
@@ -245,7 +288,6 @@ function SalesInvoiceModal({ invoice, invoiceNo, stock, customers, branches, onS
     }
   };
 
-  const statusClass = `so-status so-${header.paymentStatus.toLowerCase()}`;
 
   return (
     <div className="inv-overlay">
@@ -254,7 +296,8 @@ function SalesInvoiceModal({ invoice, invoiceNo, stock, customers, branches, onS
         <header className="inv-header">
           <span className="inv-header-icon"><Icon name="receipt" size={22} /></span>
           <div>
-            <h2>{invoice ? 'Edit Sales Invoice' : 'New Sales Invoice'} <span className="so-no">{invoiceNo}</span></h2>
+            <h2>{invoice ? 'Edit Sales Invoice' : 'New Sales Invoice'} <span className="so-no">{invoiceNo}</span>
+              {header.orderNo && <span className="so-from-order">from order {header.orderNo}</span>}</h2>
             <p>Invoice No auto-generated · Selling price is GST-inclusive · Stock auto-deducted</p>
           </div>
           <button type="button" className="inv-close" aria-label="Close" onClick={onClose}>
@@ -309,12 +352,6 @@ function SalesInvoiceModal({ invoice, invoiceNo, stock, customers, branches, onS
             <div className="so-grid so-grid-order">
               <Field label="Payment Method">
                 <Select value={header.paymentMethod} onChange={setField('paymentMethod')} options={PAYMENT_METHODS} />
-              </Field>
-              <Field label="Payment Status" className={statusClass}>
-                <Select value={header.paymentStatus} onChange={setField('paymentStatus')} options={PAYMENT_STATUSES} />
-              </Field>
-              <Field label="Order Status">
-                <Select value={header.orderStatus} onChange={setField('orderStatus')} options={ORDER_STATUSES} />
               </Field>
               <Field label="Courier Partner">
                 <input placeholder="e.g. Shiprocket" value={header.courierPartner}

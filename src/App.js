@@ -14,6 +14,7 @@ import QuotationModal from './components/QuotationModal';
 import MetalRatesBox from './components/MetalRatesBox';
 import OrdersPage from './components/OrdersPage';
 import OrderModal from './components/OrderModal';
+import OrderDetails from './components/OrderDetails';
 import MasterPage from './components/MasterPage';
 import SkuMasterPage from './components/SkuMasterPage';
 import InventoryPage from './components/InventoryPage';
@@ -23,9 +24,10 @@ import { MASTER_PAGES } from './constants/masterConfig';
 import { loadPurchaseInvoices, renameSku, savePurchaseInvoice } from './utils/draftInvoices';
 import { deleteSale, loadSales, nextSaleNo, saveSale } from './utils/draftSales';
 import { deleteOrder, loadOrders, orderFromQuotation, saveOrder } from './utils/draftOrders';
+import { saleFromOrder } from './utils/orderFlow';
 import { MASTER_KEYS, deleteMasterRecord, loadMasters, loadSettings, saveMasterRecord } from './utils/masters';
 import { browserDataSummary, dismissBrowserData, importBrowserData } from './utils/importBrowserData';
-import { alertDialog, DialogHost } from './components/ConfirmDialog';
+import { alertDialog, confirmDialog, DialogHost } from './components/ConfirmDialog';
 import Icon from './components/Icon';
 import LoginPage from './components/LoginPage';
 import UsersPage from './components/UsersPage';
@@ -302,14 +304,43 @@ function App() {
     return saved;
   };
 
-  const openSale = async () => {
+  // Quotation → Order → Sales Invoice: which order a quotation became, and which invoice an order was billed on.
+  const ordersByQuotation = useMemo(
+    () => new Map(orders.filter((o) => o.quotationNo).map((o) => [o.quotationNo, o.orderNo])), [orders]);
+  const salesByOrder = useMemo(
+    () => new Map(sales.filter((s) => s.orderNo).map((s) => [s.orderNo, s.invoiceNo])), [sales]);
+
+  // Eye button in the sales item view: the item's full details for users who may see purchases, otherwise its public
+  // product page (no cost or price), the page the QR tag opens.
+  const viewSoldItem = (skuNo) => {
+    const record = drafts.find((d) => d.items.some((i) => i.skuNo === skuNo));
+    if (record && can('purchase.view')) {
+      setDialog({ type: 'purchaseView', record, itemId: record.items.find((i) => i.skuNo === skuNo).id });
+    } else {
+      window.open(`/p/${encodeURIComponent(skuNo)}`, '_blank', 'noopener');
+    }
+  };
+
+  const openSale = async (initial) => {
     try {
       setSaleNo(await nextSaleNo());
     } catch {
       setSaleNo('');
     }
-    setDialog({ type: 'sale' });
+    setDialog({ type: 'sale', initial });
   };
+  const openSaleFromOrder = (order) => openSale(saleFromOrder(
+    order, stock, quotations.find((q) => q.quotationNo === order.quotationNo), masters.metalTypes));
+
+  // Payment / order status picked in the sales list. A delivered sale is closed, so that choice is confirmed first.
+  const changeSaleStatus = (sale, changes) => tryAction(async () => {
+    if (changes.orderStatus === 'DELIVERED' && !await confirmDialog({
+      title: `Mark ${sale.invoiceNo} delivered?`, message: 'A delivered sales invoice is closed and cannot be changed afterwards.',
+      confirmLabel: 'Mark Delivered', danger: false,
+    })) return;
+    await saveSale({ ...sale, ...changes }, sale.id);
+    await reloadSales();
+  });
 
   const saveSaleInvoice = async (payload) => {
     await saveSale(payload, dialog?.record?.id);
@@ -328,11 +359,23 @@ function App() {
     closeDialog();
   };
 
-  const saveOrderRecord = async (order) => {
-    await saveOrder({ ...order, id: dialog?.record?.id });
+  // Saves an order (from its dialog, or a new status picked in the list) and, when it has just been delivered,
+  // offers the sales invoice.
+  const persistOrder = async (order, wasDelivered) => {
+    const saved = await saveOrder(order);
     await reloadOrders();
     closeDialog();
+    // A delivered order is billed next: offer the sales invoice right away.
+    if (saved?.status === 'Delivered' && !wasDelivered && can('sales.create') && !salesByOrder.has(saved.orderNo)
+      && await confirmDialog({
+        title: `Order ${saved.orderNo} delivered`, message: 'Make the sales invoice for it now?',
+        confirmLabel: 'Make Invoice', danger: false,
+      })) {
+      await openSaleFromOrder(saved);
+    }
   };
+  const saveOrderRecord = (order) => persistOrder({ ...order, id: dialog?.record?.id }, dialog?.record?.status === 'Delivered');
+  const changeOrderStatus = (order, status) => tryAction(() => persistOrder({ ...order, status }, order.status === 'Delivered'));
 
   let content;
   if (page === 'dashboard') {
@@ -381,8 +424,9 @@ function App() {
     );
   } else if (page === 'sales') {
     content = (
-      <SalesInvoicesPage sales={sales} stock={stock} onNew={openSale}
-        onEdit={(record) => setDialog({ type: 'sale', record })}
+      <SalesInvoicesPage sales={sales} stock={stock} onNew={() => openSale()}
+        onEdit={(record) => setDialog({ type: 'sale', record })} onChangeStatus={changeSaleStatus}
+        onViewItem={viewSoldItem}
         canCreate={can('sales.create')} canDelete={can('sales.delete')} showCost={can('cost.view')}
         onDelete={(id) => tryAction(async () => { await deleteSale(id); await reloadSales(); })} />
     );
@@ -393,11 +437,14 @@ function App() {
         onNewCustom={() => setDialog({ type: 'quotation', custom: true })}
         onEdit={(record) => setDialog({ type: 'quotation', record })}
         onCreateOrder={(record) => setDialog({ type: 'order', initial: orderFromQuotation(record) })}
+        ordersByQuotation={ordersByQuotation}
         onDelete={(id) => tryAction(async () => { await quotationApi.remove(id); await reloadQuotations(); })} />
     );
   } else if (page === 'orders') {
     content = (
       <OrdersPage orders={orders} canCreate={can('sales.create')} canDelete={can('sales.delete')}
+        salesByOrder={salesByOrder} onCreateSale={openSaleFromOrder} onChangeStatus={changeOrderStatus}
+        onView={(record) => setDialog({ type: 'orderView', record })}
         onNew={() => setDialog({ type: 'order' })}
         onEdit={(record) => setDialog({ type: 'order', record })}
         onDelete={(id) => tryAction(async () => { await deleteOrder(id); await reloadOrders(); })} />
@@ -564,6 +611,7 @@ function App() {
         <SalesInvoiceModal
           key={dialog.record?.id ?? 'new'}
           invoice={dialog.record}
+          initial={dialog.initial}
           invoiceNo={dialog.record?.invoiceNo ?? saleNo}
           stock={stock}
           customers={customers}
@@ -589,6 +637,21 @@ function App() {
       )}
       <DialogHost />
       {changingPassword && <ChangePasswordModal onClose={() => setChangingPassword(false)} />}
+      {dialog?.type === 'orderView' && (() => {
+        // The latest copy of the order, so a status changed behind the dialog shows.
+        const order = orders.find((o) => o.id === dialog.record.id) ?? dialog.record;
+        return (
+          <OrderDetails
+            order={order}
+            quotation={quotations.find((q) => q.quotationNo === order.quotationNo)}
+            invoiceNo={salesByOrder.get(order.orderNo)}
+            canEdit={can('sales.create')}
+            onEdit={() => setDialog({ type: 'order', record: order })}
+            onInvoice={() => { closeDialog(); openSaleFromOrder(order); }}
+            onClose={closeDialog}
+          />
+        );
+      })()}
       {dialog?.type === 'order' && (
         <OrderModal order={dialog.record} initial={dialog.initial} masters={masters} onClose={closeDialog}
           onSave={saveOrderRecord} onAddCustomer={addCustomer} />

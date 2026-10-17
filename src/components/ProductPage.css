@@ -162,3 +162,47 @@
 .pp-stones {
   margin-bottom: 12px;
 }
+
+/* Phones: both tables share the card width exactly; long stone names wrap instead of pushing the weight out. */
+.pp-page {
+  overflow-x: hidden;
+}
+
+.pp-card > *,
+.pp-prices {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.pp-prices {
+  width: 100%;
+}
+
+.pp-prices table {
+  table-layout: fixed;
+}
+
+.pp-prices th,
+.pp-prices td {
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+
+.pp-stones th:nth-child(1) { width: 34%; }
+.pp-stones th:nth-child(2) { width: 28%; }
+.pp-stones th:nth-child(3) { width: 12%; }
+.pp-stones th:nth-child(4) { width: 26%; }
+
+.pp-prices:not(.pp-stones) th:nth-child(1) { width: 34%; }
+.pp-prices:not(.pp-stones) th:nth-child(2) { width: 30%; }
+.pp-prices:not(.pp-stones) th:nth-child(3) { width: 36%; }
+
+.pp-prices small {
+  display: block;
+}
+
+@media (max-width: 420px) {
+  .pp-prices { padding: 12px 10px; }
+  .pp-prices table { font-size: 13px; }
+  .pp-prices th { font-size: 10px; }
+}

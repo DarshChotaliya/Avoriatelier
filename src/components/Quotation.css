@@ -255,3 +255,23 @@
 .qt-order-btn:hover {
   background: var(--brand-dark);
 }
+
+/* The order a quotation became (shown instead of the Order button). */
+.qt-ordered {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--brand-light);
+  color: var(--brand);
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.so-from-order {
+  margin-left: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}

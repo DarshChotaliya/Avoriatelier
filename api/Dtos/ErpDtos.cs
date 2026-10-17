@@ -139,6 +139,7 @@ public class SalesInvoiceRequest
     [Range(0, double.MaxValue)] public decimal Shipping { get; set; }
     [Range(0, double.MaxValue)] public decimal Expenses { get; set; }
     [Range(-1_000_000, 1_000_000)] public decimal RoundOff { get; set; }
+    [MaxLength(30)] public string? OrderNo { get; set; }
     [MaxLength(500)] public string? Notes { get; set; }
     [MaxLength(500)] public string? BillingAddress { get; set; }
     [MaxLength(500)] public string? ShippingAddress { get; set; }
@@ -151,7 +152,7 @@ public record SalesInvoiceDto(
     string? City, string? State, string SalesChannel, string PaymentMethod, string PaymentStatus, string OrderStatus,
     string? CourierPartner, string? TrackingNo, decimal Shipping, decimal Expenses, string? Notes,
     string? BillingAddress, string? ShippingAddress, bool ShippingSameAsBilling, DateTime CreatedAt,
-    List<SalesLineDto> Lines, string? CreatedBy, decimal RoundOff);
+    List<SalesLineDto> Lines, string? CreatedBy, decimal RoundOff, string? OrderNo = null);
 
 // ---------- Quotations ----------
 

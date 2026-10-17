@@ -73,3 +73,32 @@ test('a saved sale opens for editing and its own pieces count as available', asy
     customerName: 'CD', roundOff: -1, lines: [expect.objectContaining({ skuNo: 'GEM-00001', qty: 2 })],
   }));
 });
+
+test('a sale made from a delivered order starts with its customer, order number, piece and agreed amount', async () => {
+  const onSubmit = jest.fn().mockResolvedValue();
+  const initial = {
+    header: { customerName: 'Riya Shah', contactNo: '9876543210', branch: 'SURAT', orderNo: 'ORD-00007',
+      notes: 'Order ORD-00007 · Advance paid Rs 5000' },
+    lines: [{ skuNo: 'AVRNGW00001', description: 'CQ SET', metalType: 'GOLD (18KT)', qty: '1', netWeight: '3',
+      metalAmount: '18000', makingCharges: '24000', selling: '42000', gstPercent: '3',
+      orderKeep: ['description', 'metalType', 'qty', 'netWeight', 'metalAmount', 'makingCharges', 'selling', 'gstPercent'] }],
+  };
+  const stock = [{ skuNo: 'AVRNGW00001', category: 'Ring', collection: 'Women', netWeight: 3.2, mrp: 0, discount: 0,
+    salePrice: 0, gstPercent: 3, metalType: 'S925', available: 1 }];
+  render(<SalesInvoiceModal initial={initial} invoiceNo="SAL-00005" stock={stock} customers={[]}
+    branches={[{ name: 'SURAT' }]} onSubmit={onSubmit} onClose={() => {}} />);
+
+  expect(screen.getByRole('dialog', { name: 'New Sales Invoice' })).toBeInTheDocument();
+  expect(screen.getByText('from order ORD-00007')).toBeInTheDocument();
+  expect(screen.getByDisplayValue('Riya Shah')).toBeInTheDocument();
+  expect(screen.getByDisplayValue('AVRNGW00001')).toBeInTheDocument();
+  // The agreed values stay (not the stock's 0 price and its own description).
+  expect(screen.getByDisplayValue('CQ SET')).toBeInTheDocument();
+  expect(screen.getByDisplayValue('GOLD (18KT)')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /Create|Save/ }));
+  await screen.findByRole('button', { name: /Saving|Create|Save/ });
+  expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
+    customerName: 'Riya Shah', orderNo: 'ORD-00007',
+    lines: [expect.objectContaining({ skuNo: 'AVRNGW00001', selling: 42000, metalAmount: 18000, makingCharges: 24000, netWeight: 3 })],
+  }));
+});

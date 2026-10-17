@@ -1,11 +1,19 @@
 // QR tags for purchased pieces. The QR holds a link to the piece's public page (/p/<SKU>), which shows the piece and
 // its metal value in every quality at today's rate — nothing private.
 import logo from '../assets/avori-logo-black.png';
+import { PUBLIC_SITE_URL } from '../constants/company';
 import qrcode from 'qrcode-generator';
 import { formatWeight } from './purchaseCalc';
 
 /** Link a tag's QR opens: this ERP's address + /p/<SKU>. */
-export const productUrl = (skuNo, origin = window.location.origin) => `${origin}/p/${encodeURIComponent(skuNo)}`;
+// localhost, 127.x, 10.x, 192.168.x and 172.16-31.x: addresses that only work on this computer or its own network.
+const isPrivateHost = (host) => /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0\.0|\[?::1\]?$)/i.test(host)
+  || host.endsWith('.local');
+
+/** The address a tag's QR points at: this site when it is public, otherwise the public site (see PUBLIC_SITE_URL). */
+export const tagOrigin = (loc = window.location) => (isPrivateHost(loc.hostname) ? PUBLIC_SITE_URL : loc.origin);
+
+export const productUrl = (skuNo, origin = tagOrigin()) => `${origin}/p/${encodeURIComponent(skuNo)}`;
 
 /** SKU from a /p/<SKU> address, or null for any other page. */
 export const skuFromPath = (path = window.location.pathname) => {
@@ -60,6 +68,7 @@ const TAG_CSS = `
   .half { width: 29mm; height: 12mm; flex: none; display: flex; align-items: center; }
   .front { justify-content: space-between; padding: 0 1.5mm 0 2.5mm; }
   .brand { width: 13mm; height: auto; flex: none; display: block; }
+  .bf .front .brand, .bf .front .qr { transform: rotate(180deg); }
   .bf .qr { width: 10.5mm; height: 10.5mm; }
   .fold { width: 0; height: 12mm; flex: none; border-left: 0.35mm dashed #000; }
   .back { flex-direction: column; justify-content: center; align-items: flex-start; gap: 0.3mm; padding: 0 2mm;
@@ -112,8 +121,10 @@ const TAG_SCRIPT = `
     document.body.style.setProperty('--w', w.value + 'mm');
     document.body.style.setProperty('--h', h.value + 'mm');
     document.getElementById('page').textContent = '@page { size: ' + width + 'mm ' + height + 'mm; margin: 0; }';
-    document.getElementById('hint').textContent = 'Label ' + width + ' × ' + height
-      + ' mm · pick that label stock on the label printer, margins none, scale 100%';
+    document.getElementById('hint').textContent = style === 'flag'
+      ? 'Label ' + width + ' × ' + height + ' mm · pick that label stock on the label printer, margins none, scale 100%'
+      : 'Printable area: 81 × 12 mm (matches the label stock 81-12 of the printer driver, which handles the label gap)'
+        + ' · content sits left, rest of the width is blank stock';
     put('avori.tagStyle', style);
     put('avori.flagW', w.value);
     put('avori.flagH', h.value);

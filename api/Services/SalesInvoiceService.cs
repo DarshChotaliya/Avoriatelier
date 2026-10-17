@@ -56,6 +56,7 @@ public class SalesInvoiceService : ISalesInvoiceService
     public async Task<SalesInvoiceDto> CreateAsync(SalesInvoiceRequest r, CancellationToken ct)
     {
         Validate(r);
+        await CheckOrderAsync(r.OrderNo, null, ct);
         await CheckStockAsync(r.Lines, null, ct);
 
         string invoiceNo;
@@ -97,12 +98,26 @@ public class SalesInvoiceService : ISalesInvoiceService
         if (sale.OrderStatus == DeliveredStatus)
             throw new BusinessValidationException($"Sales invoice {sale.InvoiceNo} is delivered and cannot be changed.");
         Validate(r);
+        await CheckOrderAsync(r.OrderNo, id, ct);
         await CheckStockAsync(r.Lines, id, ct);
 
         _db.RemoveRange(sale.Lines);
         Apply(sale, r, DateTime.UtcNow);
         await _db.SaveChangesAsync(ct);
         return ToDto(sale);
+    }
+
+    /// <summary>A bill made from an order: the order must exist, be delivered, and not be billed already.</summary>
+    private async Task CheckOrderAsync(string? orderNo, int? ownId, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(orderNo)) return;
+        var no = orderNo.Trim().ToUpperInvariant();
+        var order = await _db.CustomerOrders.AsNoTracking().FirstOrDefaultAsync(o => o.OrderNo == no, ct)
+                    ?? throw new BusinessValidationException($"Order {no} does not exist.");
+        if (order.Status != "Delivered")
+            throw new BusinessValidationException($"Order {no} is {order.Status}: a sales invoice can be made once it is Delivered.");
+        var billed = await _db.SalesInvoices.Where(s => s.OrderNo == no && s.Id != (ownId ?? 0)).Select(s => s.InvoiceNo).FirstOrDefaultAsync(ct);
+        if (billed is not null) throw new BusinessValidationException($"Order {no} already has sales invoice {billed}.");
     }
 
     private void Validate(SalesInvoiceRequest r)
@@ -135,6 +150,7 @@ public class SalesInvoiceService : ISalesInvoiceService
         sale.Expenses = r.Expenses;
         sale.RoundOff = r.RoundOff;
         sale.Notes = Text(r.Notes);
+        sale.OrderNo = Text(r.OrderNo)?.ToUpperInvariant();
         sale.BillingAddress = Text(r.BillingAddress);
         sale.ShippingAddress = r.ShippingSameAsBilling ? Text(r.BillingAddress) : Text(r.ShippingAddress);
         sale.ShippingSameAsBilling = r.ShippingSameAsBilling;
@@ -200,5 +216,5 @@ public class SalesInvoiceService : ISalesInvoiceService
             StonePcs = l.StonePcs, StoneWeight = l.StoneWeight, StoneAmount = l.StoneAmount,
             MakingCharges = l.MakingCharges,
         }).ToList(),
-        s.CreatedBy, s.RoundOff);
+        s.CreatedBy, s.RoundOff, s.OrderNo);
 }

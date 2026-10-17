@@ -1,4 +1,7 @@
 import { useMemo, useState } from 'react';
+import PhotoThumb from './PhotoThumb';
+import SelectBox from './SelectBox';
+import { ORDER_STATUSES, PAYMENT_STATUSES } from '../constants/salesOptions';
 import { usePaged } from './Pagination';
 import { confirmDialog } from './ConfirmDialog';
 import Icon from './Icon';
@@ -15,7 +18,7 @@ const shortDate = (iso) =>
 const inRange = (date, from, to) => (!from || date >= from) && (!to || date <= to);
 
 function SalesInvoicesPage({
-  sales, stock, onNew, onEdit, onDelete, canCreate = true, canDelete = true, showCost = true,
+  sales, stock, onNew, onEdit, onDelete, onChangeStatus, onViewItem, canCreate = true, canDelete = true, showCost = true,
 }) {
   // 'invoices': one row per bill · 'items': one row per piece sold, with the bill's columns.
   const [view, setView] = useState('invoices');
@@ -99,11 +102,12 @@ function SalesInvoicesPage({
                   <th className="num">Stone Amt</th>
                   <th className="num">Making</th>
                   <th className="num">Amount</th>
+                  <th className="center">View</th>
                 </tr>
               </thead>
               <tbody>
                 {itemRows.length === 0 && (
-                  <tr><td colSpan={13} className="pi-empty">{sales.length === 0 ? 'No sales yet.' : 'No items match.'}</td></tr>
+                  <tr><td colSpan={14} className="pi-empty">{sales.length === 0 ? 'No sales yet.' : 'No items match.'}</td></tr>
                 )}
                 {itemPages.pageRows.map((l) => {
                   const money = (v) => (num(v) ? `₹${formatAmount(v)}` : '—');
@@ -114,8 +118,15 @@ function SalesInvoicesPage({
                       <td><span className="pi-sku">{l.sale.invoiceNo}</span></td>
                       <td><span className="pi-sku">{l.skuNo}</span></td>
                       <td>
-                        <div className="pi-item-name">{l.description || stockBySku.get(l.skuNo)?.category || '—'}</div>
-                        <div className="pi-item-sub">{l.metalType}</div>
+                        <div className="so-item">
+                          {stockBySku.get(l.skuNo)?.thumb
+                            ? <PhotoThumb src={stockBySku.get(l.skuNo).thumb} title={l.skuNo} />
+                            : <span className="pi-thumb pi-thumb-empty"><Icon name="camera" size={14} /></span>}
+                          <div>
+                            <div className="pi-item-name">{l.description || stockBySku.get(l.skuNo)?.category || '—'}</div>
+                            <div className="pi-item-sub">{l.metalType}</div>
+                          </div>
+                        </div>
                       </td>
                       <td>{l.sale.customerName}</td>
                       <td className="num"><span className="pi-qty">{l.qty}</span></td>
@@ -126,6 +137,14 @@ function SalesInvoicesPage({
                       <td className="num mono">{money(l.stoneAmount)}</td>
                       <td className="num mono">{money(l.makingCharges)}</td>
                       <td className="num mono pi-green">₹{formatAmount(saleLineAmount(l))}</td>
+                      <td className="center">
+                        {onViewItem && (
+                          <button type="button" className="pi-action" title="View this item" aria-label={`View item ${l.skuNo}`}
+                            onClick={() => onViewItem(l.skuNo)}>
+                            <Icon name="eye" size={15} />
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
@@ -173,6 +192,7 @@ function SalesInvoicesPage({
                     <td>
                       <div className="pi-item-name">{s.customerName}</div>
                       <div className="pi-item-sub">{[s.contactNo, s.city].filter(Boolean).join(' · ')}</div>
+                      {s.orderNo && <div className="pi-item-sub">Order {s.orderNo}</div>}
                     </td>
                     <td className="muted">{s.salesChannel}</td>
                     <td className="num"><span className="pi-qty">{s.lines.reduce((n, l) => n + num(l.qty), 0)}</span></td>
@@ -191,8 +211,21 @@ function SalesInvoicesPage({
                         </td>
                       </>
                     )}
-                    <td><span className={`so-badge so-${s.paymentStatus.toLowerCase()}`}>{s.paymentStatus}</span></td>
-                    <td><span className="so-badge so-order">{s.orderStatus}</span></td>
+                    {/* Both statuses are changed right here; a delivered sale is closed, so its badges stay as they are. */}
+                    <td>
+                      {canCreate && onChangeStatus && canEditSale(s) ? (
+                        <SelectBox value={s.paymentStatus} options={PAYMENT_STATUSES}
+                          aria-label={`Payment status of ${s.invoiceNo}`} className={`so-pick so-${s.paymentStatus.toLowerCase()}`}
+                          onChange={(paymentStatus) => onChangeStatus(s, { paymentStatus })} />
+                      ) : <span className={`so-badge so-${s.paymentStatus.toLowerCase()}`}>{s.paymentStatus}</span>}
+                    </td>
+                    <td>
+                      {canCreate && onChangeStatus && canEditSale(s) ? (
+                        <SelectBox value={s.orderStatus} options={ORDER_STATUSES}
+                          aria-label={`Order status of ${s.invoiceNo}`} className="so-pick so-order"
+                          onChange={(orderStatus) => onChangeStatus(s, { orderStatus })} />
+                      ) : <span className="so-badge so-order">{s.orderStatus}</span>}
+                    </td>
                     <td className="center">
                       <button type="button" className="pi-action" title="Print bill"
                         aria-label={`Print ${s.invoiceNo}`} onClick={() => printSaleBill(s)}>

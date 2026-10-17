@@ -92,3 +92,171 @@
     grid-column: auto;
   }
 }
+
+/* Quotation → Order → Invoice: the button that bills a delivered order, and the invoice number once it is billed. */
+.od-bill-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  margin-right: 0;
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  background: #fbf3e2;
+  color: #7a5a14;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.od-bill-btn:hover {
+  background: var(--gold);
+  color: var(--brand-dark);
+}
+
+.od-billed {
+  display: inline-block;
+  margin-right: 0;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--brand-light);
+  color: var(--brand);
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* The status pill is a drop-down (a SelectBox button wearing the status colour): pick another status to change the
+   order right here. The class sits on the button itself, so the rules below name both classes to win over .sb-btn. */
+.sb-btn.od-pick {
+  width: auto;
+  height: 28px;
+  padding: 0 8px 0 12px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--calc-bg);
+  color: var(--muted);
+}
+
+.sb-btn.od-pick .sb-caret {
+  color: inherit;
+}
+
+.sb-btn.od-pick.od-pending {
+  background: #fdecea;
+  color: var(--danger);
+}
+
+.sb-btn.od-pick.od-order-placed,
+.sb-btn.od-pick.od-cad-confirmed,
+.sb-btn.od-pick.od-in-production {
+  background: #fff4dc;
+  color: #8a6416;
+}
+
+.sb-btn.od-pick.od-ready {
+  background: #e7efff;
+  color: #2a4a8f;
+}
+
+.sb-btn.od-pick.od-delivered {
+  background: #e5f5ee;
+  color: #0b7a5c;
+}
+
+.sb-btn.od-pick:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+/* Amount column and the order view. */
+.od-amount {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.od-bill-lg {
+  height: 42px;
+  padding: 0 18px;
+  font-size: 14px;
+}
+
+.od-notes {
+  margin: 0;
+  white-space: pre-wrap;
+  color: var(--text);
+}
+
+/* Orders list: fewer, roomier columns. */
+.od-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.od-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.od-dates em {
+  display: inline-block;
+  width: 72px;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.od-money {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.od-split {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.od-adv {
+  color: #0b7a5c;
+}
+
+.od-bal {
+  color: var(--danger);
+}
+
+/* Orders list alignment: every status pill is the same width, and the three icon buttons form one tidy row. */
+.od-status,
+.sb-btn.od-pick {
+  min-width: 112px;
+}
+
+.od-status {
+  text-align: center;
+}
+
+.sb-btn.od-pick {
+  justify-content: space-between;
+}
+
+.od-actions {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}

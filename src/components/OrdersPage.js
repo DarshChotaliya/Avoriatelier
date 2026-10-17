@@ -2,7 +2,9 @@ import { useMemo, useState } from 'react';
 import { usePaged } from './Pagination';
 import { confirmDialog } from './ConfirmDialog';
 import Icon from './Icon';
-import { isOpenOrder } from '../utils/draftOrders';
+import SelectBox from './SelectBox';
+import { formatAmount, money, num } from '../utils/purchaseCalc';
+import { ORDER_STATUSES, isOpenOrder } from '../utils/draftOrders';
 import './PurchaseInvoices.css';
 import './MasterPage.css';
 import './Orders.css';
@@ -20,7 +22,9 @@ const shortDate = (iso) => (iso
 
 const statusClass = (s) => `od-status od-${s.toLowerCase().replace(/\s+/g, '-')}`;
 
-function OrdersPage({ orders, onNew, onEdit, onDelete, canCreate = true, canDelete = true }) {
+function OrdersPage({
+  orders, onNew, onEdit, onDelete, onView, onCreateSale, onChangeStatus, salesByOrder, canCreate = true, canDelete = true,
+}) {
   const [filter, setFilter] = useState('open');
   const [search, setSearch] = useState('');
   const q = search.trim().toLowerCase();
@@ -86,20 +90,19 @@ function OrdersPage({ orders, onNew, onEdit, onDelete, canCreate = true, canDele
                 <th>Client</th>
                 <th>Piece</th>
                 <th>Metal</th>
-                <th>Diamond</th>
                 <th className="num">Qty</th>
                 <th>Manufacturer</th>
-                <th>Ordered</th>
-                <th>CAD</th>
-                <th>Delivery</th>
+                <th>Dates</th>
+                <th className="num">Amount</th>
                 <th>Status</th>
+                <th className="center">Invoice</th>
                 <th className="center">Actions</th>
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={12} className="pi-empty">
+                  <td colSpan={11} className="pi-empty">
                     {orders.length === 0 ? 'No orders yet. Click “New Order” to add one.' : 'No orders match.'}
                   </td>
                 </tr>
@@ -119,34 +122,88 @@ function OrdersPage({ orders, onNew, onEdit, onDelete, canCreate = true, canDele
                         {[o.designRef, o.quotationNo && `from ${o.quotationNo}`].filter(Boolean).join(' · ')}
                       </div>
                     </td>
-                    <td>{o.metalType || '—'}</td>
-                    <td>{o.diamondType || '—'}</td>
+                    <td>
+                      <div className="pi-item-name">{o.metalType || '—'}</div>
+                      <div className="od-sub">{o.diamondType || '—'}</div>
+                    </td>
                     <td className="num"><span className="pi-qty">{o.qty}</span></td>
                     <td>{o.manufacturer || '—'}</td>
-                    <td className="muted">{shortDate(o.clientOrderDate)}</td>
-                    <td className="muted">{shortDate(o.cadConfirmedDate)}</td>
-                    <td className={overdue ? 'pi-red' : 'muted'} title={overdue ? 'Delivery date has passed' : undefined}>
-                      {shortDate(o.deliveryDate)}{overdue && ' ⚠'}
+                    <td>
+                      {/* Ordered, CAD (once confirmed) and delivery date, one under the other. */}
+                      <div className="od-dates">
+                        <span><em>Ordered</em>{shortDate(o.clientOrderDate)}</span>
+                        {o.cadConfirmedDate && <span><em>CAD</em>{shortDate(o.cadConfirmedDate)}</span>}
+                        <span className={overdue ? 'pi-red' : undefined}
+                          title={overdue ? 'Delivery date has passed' : undefined}>
+                          <em>Delivery</em>{shortDate(o.deliveryDate)}{overdue && ' ⚠'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="od-money">
+                      {num(o.amount) > 0 ? (
+                        <>
+                          <div className="od-amount">₹{formatAmount(o.amount)}</div>
+                          {num(o.advance) > 0 ? (
+                            <div className="od-split">
+                              <span className="od-adv">Advance ₹{formatAmount(o.advance)}</span>
+                              <span className="od-bal">Balance ₹{formatAmount(money(num(o.amount) - num(o.advance)))}</span>
+                            </div>
+                          ) : <div className="od-sub">No advance</div>}
+                        </>
+                      ) : <span className="muted">—</span>}
                     </td>
                     <td>
-                      <span className={statusClass(o.status)}>{o.status}</span>
+                      {/* The status is changed right here; a delivered order that is already billed is closed. */}
+                      {canCreate && onChangeStatus && !(o.status === 'Delivered' && salesByOrder?.get(o.orderNo)) ? (
+                        <SelectBox value={o.status} options={ORDER_STATUSES} aria-label={`Status of ${o.orderNo}`}
+                          className={`od-pick ${statusClass(o.status)}`} onChange={(status) => onChangeStatus(o, status)} />
+                      ) : (
+                        <span className={statusClass(o.status)}
+                          title={salesByOrder?.get(o.orderNo) ? `Billed on ${salesByOrder.get(o.orderNo)}` : undefined}>
+                          {o.status}
+                        </span>
+                      )}
                       {o.status === 'Delivered' && o.completedDate && (
-                        <div className="pi-item-sub">{shortDate(o.completedDate)}</div>
+                        <div className="od-sub">{shortDate(o.completedDate)}</div>
                       )}
                     </td>
-                    <td className="center mp-actions">
-                      {canCreate && (
-                        <button type="button" className="pi-action" title="Edit" aria-label={`Edit ${o.orderNo}`}
-                          onClick={() => onEdit(o)}>
-                          <Icon name="edit" size={15} />
+                    <td className="center">
+                      {/* Delivered orders are billed: the invoice number once made, a button until then. */}
+                      {o.status === 'Delivered' && salesByOrder?.get(o.orderNo) && (
+                        <span className="od-billed" title="Sales invoice made from this order">
+                          {salesByOrder.get(o.orderNo)}
+                        </span>
+                      )}
+                      {o.status === 'Delivered' && !salesByOrder?.get(o.orderNo) && canCreate && onCreateSale && (
+                        <button type="button" className="od-bill-btn" title="Make the sales invoice for this order"
+                          aria-label={`Make sales invoice for ${o.orderNo}`} onClick={() => onCreateSale(o)}>
+                          <Icon name="receipt" size={14} />
+                          Invoice
                         </button>
                       )}
-                      {canDelete && (
-                        <button type="button" className="pi-action danger" title="Delete"
-                          aria-label={`Delete ${o.orderNo}`} onClick={() => remove(o)}>
-                          <Icon name="trash" size={15} />
-                        </button>
-                      )}
+                      {o.status !== 'Delivered' && <span className="muted">—</span>}
+                    </td>
+                    <td className="center">
+                      <div className="od-actions">
+                        {onView && (
+                          <button type="button" className="pi-action" title="View order" aria-label={`View ${o.orderNo}`}
+                            onClick={() => onView(o)}>
+                            <Icon name="eye" size={15} />
+                          </button>
+                        )}
+                        {canCreate && (
+                          <button type="button" className="pi-action" title="Edit" aria-label={`Edit ${o.orderNo}`}
+                            onClick={() => onEdit(o)}>
+                            <Icon name="edit" size={15} />
+                          </button>
+                        )}
+                        {canDelete && (
+                          <button type="button" className="pi-action danger" title="Delete"
+                            aria-label={`Delete ${o.orderNo}`} onClick={() => remove(o)}>
+                            <Icon name="trash" size={15} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

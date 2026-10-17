@@ -32,7 +32,7 @@
 
 /* Payment method · Payment status · Order status · Courier · Tracking · Shipping · Expenses · Round off, then Notes */
 .so-grid-order {
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(6, 1fr);
 }
 
 .so-notes {
@@ -373,4 +373,52 @@
   padding-top: 14px !important;
   font-size: 13px;
   white-space: nowrap;
+}
+
+/* Status badges in the sales list are drop-downs (the class sits on the SelectBox button itself). */
+.sb-btn.so-pick {
+  width: auto;
+  height: 26px;
+  padding: 0 6px 0 9px;
+  border: 0;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.sb-btn.so-pick .sb-caret {
+  color: inherit;
+}
+
+.sb-btn.so-pick.so-pending {
+  color: var(--danger);
+  background: #fdecea;
+}
+
+.sb-btn.so-pick.so-partial {
+  color: #b7791f;
+  background: #fff4dc;
+}
+
+.sb-btn.so-pick.so-paid {
+  color: #0b7a5c;
+  background: #e5f5ee;
+}
+
+.sb-btn.so-pick.so-order {
+  color: var(--brand);
+  background: var(--brand-light);
+}
+
+.sb-btn.so-pick:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+/* Item view: a small photo beside the item's name. */
+.so-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 170px;
 }
