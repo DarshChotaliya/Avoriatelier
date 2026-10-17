@@ -3,7 +3,7 @@ import { BANGLE_SIZES, formatSize, parseSize, sizeKind } from '../utils/itemSize
 
 const LABELS = {
   length: 'Length (inch)',
-  wh: 'Width × Height (mm)',
+  wh: 'Width × Height (inch)',
   ring: 'Ring Size',
   bangle: 'Size (Anna)',
   text: 'Size',
@@ -24,10 +24,10 @@ function SizeField({ category, value, onChange, Cell }) {
   } else if (kind === 'wh') {
     control = (
       <span className="ic-size-wh">
-        <input type="number" min="0" step="any" className="inv-num" placeholder="W" aria-label="Width (mm)"
+        <input type="number" min="0" step="any" className="inv-num" placeholder="W" aria-label="Width (inch)"
           value={parts.width} onChange={set('width')} />
         <span aria-hidden="true">×</span>
-        <input type="number" min="0" step="any" className="inv-num" placeholder="H" aria-label="Height (mm)"
+        <input type="number" min="0" step="any" className="inv-num" placeholder="H" aria-label="Height (inch)"
           value={parts.height} onChange={set('height')} />
       </span>
     );

@@ -1,6 +1,6 @@
 // How a piece is measured depends on its category; the result is stored as one text value in the item's Size.
 //   Bracelet / Necklace / Chain / Anklet → length in inches        "16 in"
-//   Pendant / Earring                    → width × height in mm     "12 × 18 mm"
+//   Pendant / Earring                    → width × height in inches "0.5 × 0.7 in"
 //   Ring                                 → ring size                 "13"
 //   Bangle / Kada                        → inches-annas (1/16 inch)  "2-4"
 //   anything else                        → free text
@@ -30,7 +30,7 @@ export function formatSize(kind, parts) {
     case 'length':
       return v(parts.length) && `${v(parts.length)} in`;
     case 'wh':
-      return v(parts.width) || v(parts.height) ? `${v(parts.width)} × ${v(parts.height)} mm` : '';
+      return v(parts.width) || v(parts.height) ? `${v(parts.width)} × ${v(parts.height)} in` : '';
     default:
       return v(parts.value);
   }
@@ -41,7 +41,8 @@ export function parseSize(kind, text) {
   const s = String(text ?? '').trim();
   if (kind === 'length') return { length: s.replace(/\s*in(ch(es)?)?$/i, '') };
   if (kind === 'wh') {
-    const m = s.replace(/\s*mm$/i, '').split(/\s*[×x*]\s*/i);
+    // Older sizes were saved in mm; either unit is read back as the two numbers.
+    const m = s.replace(/\s*(mm|in(ch(es)?)?)$/i, '').split(/\s*[×x*]\s*/i);
     return { width: m[0] ?? '', height: m[1] ?? '' };
   }
   return { value: s };
