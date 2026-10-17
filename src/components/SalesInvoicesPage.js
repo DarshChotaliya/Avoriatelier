@@ -17,20 +17,26 @@ const shortDate = (iso) =>
 
 const inRange = (date, from, to) => (!from || date >= from) && (!to || date <= to);
 
+// A custom sale is one made to order: some line has no stock SKU.
+const isCustomSale = (s) => s.lines.some((l) => !l.skuNo);
+
 function SalesInvoicesPage({
-  sales, stock, onNew, onEdit, onDelete, onChangeStatus, onViewItem, canCreate = true, canDelete = true, showCost = true,
+  sales, stock, onNew, onEdit, onDelete, onChangeStatus, onViewItem, onViewOrder, canCreate = true, canDelete = true, showCost = true,
 }) {
   // 'invoices': one row per bill · 'items': one row per piece sold, with the bill's columns.
   const [view, setView] = useState('invoices');
   const [search, setSearch] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  // 'all' · 'stock' (pieces from stock) · 'custom' (made to order, no SKU)
+  const [kind, setKind] = useState('all');
   const q = search.trim().toLowerCase();
   const stockBySku = useMemo(() => new Map(stock.map((st) => [st.skuNo, st])), [stock]);
 
   const rows = useMemo(() => sales.filter((s) => inRange(s.invoiceDate, from, to)
+    && (kind === 'all' || (kind === 'custom') === isCustomSale(s))
     && (!q || [s.invoiceNo, s.customerName, s.contactNo, s.city, ...s.lines.map((l) => l.skuNo)]
-      .some((v) => v && v.toLowerCase().includes(q)))), [sales, from, to, q]);
+      .some((v) => v && v.toLowerCase().includes(q)))), [sales, from, to, q, kind]);
 
   const itemRows = useMemo(() => rows.flatMap((s) => s.lines.map((l, i) => ({ ...l, sale: s, key: `${s.id}-${i}` }))),
     [rows]);
@@ -75,6 +81,11 @@ function SalesInvoicesPage({
             <input type="search" placeholder="Search invoice, customer, mobile, SKU…" value={search}
               onChange={(e) => setSearch(e.target.value)} />
           </label>
+          <div className="pi-toggle" role="tablist" aria-label="Sale type">
+            {[['all', 'All'], ['stock', 'Stock'], ['custom', 'Custom']].map(([k, label]) => (
+              <button key={k} type="button" className={kind === k ? 'active' : ''} onClick={() => setKind(k)}>{label}</button>
+            ))}
+          </div>
           <div className="pi-dates">
             <Icon name="calendar" size={15} />
             <span>Date:</span>
@@ -116,7 +127,7 @@ function SalesInvoicesPage({
                     <tr key={l.key}>
                       <td className="muted">{shortDate(l.sale.invoiceDate)}</td>
                       <td><span className="pi-sku">{l.sale.invoiceNo}</span></td>
-                      <td><span className="pi-sku">{l.skuNo}</span></td>
+                      <td>{l.skuNo ? <span className="pi-sku">{l.skuNo}</span> : <span className="so-badge so-custom">Custom</span>}</td>
                       <td>
                         <div className="so-item">
                           {stockBySku.get(l.skuNo)?.thumb
@@ -138,7 +149,13 @@ function SalesInvoicesPage({
                       <td className="num mono">{money(l.makingCharges)}</td>
                       <td className="num mono pi-green">₹{formatAmount(saleLineAmount(l))}</td>
                       <td className="center">
-                        {onViewItem && (
+                        {onViewOrder && !l.skuNo && l.sale.orderNo && (
+                          <button type="button" className="pi-action" title={`View order ${l.sale.orderNo}`}
+                            aria-label={`View order ${l.sale.orderNo}`} onClick={() => onViewOrder(l.sale.orderNo)}>
+                            <Icon name="eye" size={15} />
+                          </button>
+                        )}
+                        {onViewItem && l.skuNo && (
                           <button type="button" className="pi-action" title="View this item" aria-label={`View item ${l.skuNo}`}
                             onClick={() => onViewItem(l.skuNo)}>
                             <Icon name="eye" size={15} />
@@ -193,6 +210,7 @@ function SalesInvoicesPage({
                       <div className="pi-item-name">{s.customerName}</div>
                       <div className="pi-item-sub">{[s.contactNo, s.city].filter(Boolean).join(' · ')}</div>
                       {s.orderNo && <div className="pi-item-sub">Order {s.orderNo}</div>}
+                      {isCustomSale(s) && <span className="so-badge so-custom">Custom</span>}
                     </td>
                     <td className="muted">{s.salesChannel}</td>
                     <td className="num"><span className="pi-qty">{s.lines.reduce((n, l) => n + num(l.qty), 0)}</span></td>

@@ -312,6 +312,12 @@ function App() {
 
   // Eye button in the sales item view: the item's full details for users who may see purchases, otherwise its public
   // product page (no cost or price), the page the QR tag opens.
+  // A custom piece has no SKU or product page: its eye opens the order it was made for.
+  const viewSoldOrder = (orderNo) => {
+    const record = orders.find((o) => o.orderNo === orderNo);
+    if (record) setDialog({ type: 'orderView', record });
+  };
+
   const viewSoldItem = (skuNo) => {
     const record = drafts.find((d) => d.items.some((i) => i.skuNo === skuNo));
     if (record && can('purchase.view')) {
@@ -365,12 +371,8 @@ function App() {
     const saved = await saveOrder(order);
     await reloadOrders();
     closeDialog();
-    // A delivered order is billed next: offer the sales invoice right away.
-    if (saved?.status === 'Delivered' && !wasDelivered && can('sales.create') && !salesByOrder.has(saved.orderNo)
-      && await confirmDialog({
-        title: `Order ${saved.orderNo} delivered`, message: 'Make the sales invoice for it now?',
-        confirmLabel: 'Make Invoice', danger: false,
-      })) {
+    // A delivered order is billed next: its sales invoice form opens right away, filled from the order.
+    if (saved?.status === 'Delivered' && !wasDelivered && can('sales.create') && !salesByOrder.has(saved.orderNo)) {
       await openSaleFromOrder(saved);
     }
   };
@@ -426,7 +428,7 @@ function App() {
     content = (
       <SalesInvoicesPage sales={sales} stock={stock} onNew={() => openSale()}
         onEdit={(record) => setDialog({ type: 'sale', record })} onChangeStatus={changeSaleStatus}
-        onViewItem={viewSoldItem}
+        onViewItem={viewSoldItem} onViewOrder={viewSoldOrder}
         canCreate={can('sales.create')} canDelete={can('sales.delete')} showCost={can('cost.view')}
         onDelete={(id) => tryAction(async () => { await deleteSale(id); await reloadSales(); })} />
     );

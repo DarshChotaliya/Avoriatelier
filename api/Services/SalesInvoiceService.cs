@@ -127,6 +127,9 @@ public class SalesInvoiceService : ISalesInvoiceService
             throw new BusinessValidationException($"You do not have access to branch {r.Branch}.");
         if (string.IsNullOrWhiteSpace(r.CustomerName)) throw new BusinessValidationException("Customer name is required.");
         if (r.Lines.Count == 0) throw new BusinessValidationException("Add at least one item.");
+        if (r.Lines.Any(l => string.IsNullOrWhiteSpace(l.SkuNo)
+            && (string.IsNullOrWhiteSpace(r.OrderNo) || string.IsNullOrWhiteSpace(l.Description))))
+            throw new BusinessValidationException("Every line needs a SKU (a custom piece from an order may have none, but needs a description).");
         if (r.Lines.Any(l => l.Selling <= 0)) throw new BusinessValidationException("Every line needs a selling price.");
         if (r.Lines.Any(l => l.NetWeight <= 0)) throw new BusinessValidationException("Every line needs a net weight.");
     }
@@ -182,7 +185,7 @@ public class SalesInvoiceService : ISalesInvoiceService
     /// </summary>
     private async Task CheckStockAsync(List<SalesLineDto> lines, int? exceptSaleId, CancellationToken ct)
     {
-        var wanted = lines.GroupBy(l => l.SkuNo.Trim()).ToDictionary(g => g.Key, g => g.Sum(l => l.Qty));
+        var wanted = lines.Where(l => !string.IsNullOrWhiteSpace(l.SkuNo)).GroupBy(l => l.SkuNo.Trim()).ToDictionary(g => g.Key, g => g.Sum(l => l.Qty));
         var skus = wanted.Keys.ToList();
         // Only stock bought for the branches this user works in can be sold by them.
         var items = _db.PurchaseInvoiceItems.Where(i => skus.Contains(i.SkuNo));

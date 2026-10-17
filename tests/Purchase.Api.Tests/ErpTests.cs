@@ -293,6 +293,31 @@ public class ErpTests
     }
 
     [Fact]
+    public async Task A_custom_piece_of_an_order_is_sold_without_a_sku()
+    {
+        var orders = new OrderService(_db, new SystemUser("owner"));
+        var order = await orders.CreateAsync(new OrderRequest
+        {
+            ClientName = "Riya", ClientOrderDate = new DateOnly(2026, 7, 1), Description = "CUSTOM RING", Status = "Delivered",
+        }, default);
+        var invoice = await _purchases.CreateAsync(Invoice(LurbaItem(qty: 1)), default);
+        var request = Sale(invoice.Items[0].SkuNo, 1);
+        request.Lines[0].SkuNo = "";
+        request.Lines[0].Description = "CUSTOM RING";
+
+        // Without an order a line must have a SKU.
+        await Assert.ThrowsAsync<BusinessValidationException>(() => _sales.CreateAsync(request, default));
+        request.OrderNo = order.OrderNo;
+        request.OrderStatus = "PROCESSING";
+        var sale = await _sales.CreateAsync(request, default);
+        Assert.Equal("", sale.Lines[0].SkuNo);
+
+        // A line with neither SKU nor description is still refused.
+        request.Lines[0].Description = "";
+        await Assert.ThrowsAsync<BusinessValidationException>(() => _sales.UpdateAsync(sale.Id, request, default));
+    }
+
+    [Fact]
     public void Fixed_labour_is_the_typed_amount_instead_of_a_rate_per_gram()
     {
         var item = new PurchaseInvoiceItem { NetWeight = 0.474m, MetalRate = 246.98m, LabourRate = 500m, Hallmark = 140m };

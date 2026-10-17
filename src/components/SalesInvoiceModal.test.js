@@ -18,6 +18,13 @@ test('missing customer, unknown SKU and zero selling price are flagged', () => {
   expect(r.lines[0]).toEqual({ skuNo: true, selling: true });
 });
 
+test('a custom piece of an order may have no SKU, but needs a description', () => {
+  const custom = line({ skuNo: '', description: 'CUSTOM RING' });
+  expect(validateSale({ ...header, orderNo: 'ORD-00001' }, [custom], stock).count).toBe(0);
+  expect(validateSale(header, [custom], stock).lines[0].skuNo).toBe(true);
+  expect(validateSale({ ...header, orderNo: 'ORD-00001' }, [{ ...custom, description: '' }], stock).lines[0].skuNo).toBe(true);
+});
+
 test('the same SKU on two lines cannot exceed its stock', () => {
   const r = validateSale(header, [line({ qty: '1' }), line({ qty: '2' })], stock);
   expect(r.lines[0].qty).toBe(true);

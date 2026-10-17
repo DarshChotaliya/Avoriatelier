@@ -98,7 +98,8 @@ public class RenameSkuRequest
 
 public class SalesLineDto
 {
-    [Required, MaxLength(30)] public string SkuNo { get; set; } = string.Empty;
+    // Empty only for a custom piece sold from an order (made to order, never in stock).
+    [MaxLength(30)] public string SkuNo { get; set; } = string.Empty;
     [Range(1, 1_000_000)] public int Qty { get; set; }
     [Range(0, 1_000_000)] public decimal NetWeight { get; set; }
     [MaxLength(200)] public string? Description { get; set; }

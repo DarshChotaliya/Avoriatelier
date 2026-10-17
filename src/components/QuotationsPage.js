@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { usePaged } from './Pagination';
 import { confirmDialog } from './ConfirmDialog';
 import Icon from './Icon';
+import { COMPANY } from '../constants/company';
 import { formatAmount } from '../utils/purchaseCalc';
 import './PurchaseInvoices.css';
 import './SalesInvoice.css';
@@ -26,44 +27,80 @@ export function printQuotation(q) {
       <td class="r">₹${formatAmount(l.metalAmount)}</td>
       <td class="r">₹${formatAmount(l.labourAmount)}</td>
       <td class="r">₹${formatAmount(l.diamondAmount + l.stoneAmount + l.otherCharges + l.cadCharge)}</td>
-      <td class="r">₹${formatAmount(l.taxable)}</td>
       <td class="r">₹${formatAmount(l.gst)}</td>
       <td class="r"><b>₹${formatAmount(l.total)}</b></td>
     </tr>`).join('');
+  const sum = (k) => q.lines.reduce((t, l) => t + (Number(l[k]) || 0), 0);
+  const metalTotal = sum('metalAmount');
+  const labourTotal = sum('labourAmount');
+  const extraTotal = sum('diamondAmount') + sum('stoneAmount') + sum('otherCharges') + sum('cadCharge');
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${escape(q.quotationNo)}</title>
     <style>
-      body { font-family: Inter, Segoe UI, sans-serif; color: #1c2b28; margin: 32px; }
-      h1 { color: #04443b; margin: 0; letter-spacing: 0.2em; }
-      .head { display: flex; justify-content: space-between; border-bottom: 2px solid #c9a96e; padding-bottom: 12px; }
-      .muted { color: #687a76; font-size: 13px; }
-      table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
-      th { background: #04443b; color: #fff; text-align: left; padding: 6px 8px; font-weight: 600; }
-      td { border-bottom: 1px solid #dbe4e1; padding: 6px 8px; vertical-align: top; }
-      .r { text-align: right; white-space: nowrap; }
-      .total { margin-top: 16px; text-align: right; font-size: 18px; }
-      .total b { color: #04443b; }
-      .note { margin-top: 24px; font-size: 12px; color: #687a76; }
-      td img { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; float: left; margin-right: 8px; }
-    </style></head><body>
+      @page { size: A4; margin: 12mm; }
+      * { box-sizing: border-box; }
+      body { font-family: Inter, Segoe UI, sans-serif; color: #1c2b28; margin: 0; font-size: 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .sheet { max-width: 190mm; margin: 0 auto; padding: 16px; }
+      h1 { color: #04443b; margin: 0; font-size: 28px; letter-spacing: 0.3em; }
+      .muted { color: #687a76; }
+      .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; border-bottom: 2px solid #c9a96e; padding-bottom: 12px; }
+      .co { margin-top: 6px; font-size: 11px; line-height: 1.5; color: #687a76; }
+      .doc { text-align: right; }
+      .doc .title { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #c9a96e; font-weight: 700; }
+      .doc .no { font-size: 20px; font-weight: 700; color: #04443b; margin: 2px 0; }
+      .to { margin: 16px 0 4px; padding: 10px 12px; border-left: 3px solid #c9a96e; background: #f6f3ec; }
+      .to small { display: block; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #687a76; }
+      .to b { font-size: 15px; }
+      table { width: 100%; border-collapse: collapse; margin-top: 14px; table-layout: fixed; }
+      th { background: #04443b; color: #fff; text-align: left; padding: 7px 6px; font-size: 10.5px; font-weight: 600; }
+      td { border-bottom: 1px solid #dbe4e1; padding: 8px 6px; vertical-align: top; overflow-wrap: anywhere; }
+      th.r, td.r { text-align: right; }
+      td.r { white-space: nowrap; }
+      tr { page-break-inside: avoid; }
+      td small { color: #687a76; }
+      td img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; float: left; margin-right: 8px; }
+      .sum { width: 82mm; margin: 16px 0 0 auto; border: 1px solid #dbe4e1; border-radius: 8px; overflow: hidden; }
+      .sum div { display: flex; justify-content: space-between; padding: 6px 12px; border-bottom: 1px solid #eef2f0; }
+      .sum .grand { background: #04443b; color: #fff; font-size: 15px; font-weight: 700; border-bottom: 0; }
+      .sum .bal { font-weight: 700; color: #04443b; border-bottom: 0; }
+      .note { margin-top: 18px; font-size: 11px; color: #687a76; line-height: 1.5; }
+      .sign { display: flex; justify-content: space-between; margin-top: 56px; font-size: 11px; color: #687a76; }
+      .sign span { width: 55mm; padding-top: 6px; border-top: 1px solid #9aa9a5; text-align: center; }
+    </style></head><body><div class="sheet">
     <div class="head">
-      <div><h1>AVORI</h1><div class="muted">Quotation</div></div>
-      <div style="text-align:right">
-        <b>${escape(q.quotationNo)}</b><br><span class="muted">${shortDate(q.quotationDate)} · ${escape(q.branch)}</span>
+      <div>
+        <h1>AVORI</h1>
+        <div class="co"><b>${escape(COMPANY.legalName)}</b><br>${escape(COMPANY.address)}<br>
+          ${escape(COMPANY.contact)} · ${escape(COMPANY.email)}<br>GSTIN ${escape(COMPANY.gstin)}</div>
+      </div>
+      <div class="doc">
+        <div class="title">Quotation</div>
+        <div class="no">${escape(q.quotationNo)}</div>
+        <div class="muted">${shortDate(q.quotationDate)} · ${escape(q.branch)}</div>
       </div>
     </div>
-    <p><b>${escape(q.customerName)}</b>${q.contactNo ? `<br><span class="muted">${escape(q.contactNo)}</span>` : ''}</p>
+    <div class="to"><small>Quotation for</small><b>${escape(q.customerName)}</b>${q.contactNo ? `<br><span class="muted">${escape(q.contactNo)}</span>` : ''}</div>
     <table>
+      <colgroup><col style="width:4%"><col style="width:22%"><col style="width:8%"><col style="width:8%"><col style="width:5%">
+        <col style="width:12%"><col style="width:10%"><col style="width:12%"><col style="width:9%"><col style="width:10%"></colgroup>
       <thead><tr><th>#</th><th>Design</th><th>Metal</th><th class="r">Net wt</th><th class="r">Qty</th>
-        <th class="r">Metal</th><th class="r">Labour</th><th class="r">Diamond / stones / other</th><th class="r">Taxable</th>
-        <th class="r">GST</th><th class="r">Total</th></tr></thead>
+        <th class="r">Metal</th><th class="r">Labour</th><th class="r">Stones / other</th><th class="r">GST</th>
+        <th class="r">Total</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    <div class="total">Total: <b>₹${formatAmount(q.grandTotal)}</b></div>
-    ${q.advance > 0 ? `<div class="total" style="font-size:14px">Advance: ₹${formatAmount(q.advance)} · Balance: <b>₹${formatAmount(q.balance)}</b></div>` : ''}
-    ${q.notes ? `<p class="note">${escape(q.notes)}</p>` : ''}
+    <div class="sum">
+      <div><span>Metal</span><span>₹${formatAmount(metalTotal)}</span></div>
+      <div><span>Labour</span><span>₹${formatAmount(labourTotal)}</span></div>
+      <div><span>Diamonds, stones &amp; other</span><span>₹${formatAmount(extraTotal)}</span></div>
+      <div><span>GST</span><span>₹${formatAmount(sum('gst'))}</span></div>
+      <div class="grand"><span>Total</span><span>₹${formatAmount(q.grandTotal)}</span></div>
+      ${q.advance > 0 ? `<div><span>Advance</span><span>₹${formatAmount(q.advance)}</span></div>
+      <div class="bal"><span>Balance</span><span>₹${formatAmount(q.balance)}</span></div>` : ''}
+    </div>
+    ${q.notes ? `<p class="note"><b>Notes:</b> ${escape(q.notes)}</p>` : ''}
     <p class="note">Weights are estimates; the final price follows the actual weight and the metal rate on the day of the
       order.</p>
-    <script>window.onload = () => window.print();</script>
+    <div class="sign"><span>Customer signature</span><span>For ${escape(COMPANY.legalName)}</span></div>
+    </div><script>window.onload = () => window.print();</script>
     </body></html>`;
   const win = window.open('', '_blank');
   if (!win) return;

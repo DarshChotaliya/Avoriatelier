@@ -75,12 +75,14 @@ export function validateSale(header, lines, stockBySku) {
 
   // The same SKU on two lines counts against one stock figure.
   const wanted = new Map();
-  lines.forEach((l) => wanted.set(l.skuNo, (wanted.get(l.skuNo) ?? 0) + num(l.qty)));
+  lines.filter((l) => !blank(l.skuNo)).forEach((l) => wanted.set(l.skuNo, (wanted.get(l.skuNo) ?? 0) + num(l.qty)));
 
   const lineErrors = lines.map((l) => {
     const e = {};
     const stock = stockBySku.get(l.skuNo);
-    if (!stock) e.skuNo = true;
+    // A custom piece of an order has no SKU: it is made to order, so it needs a description instead.
+    const custom = blank(l.skuNo) && !blank(header.orderNo) && !blank(l.description);
+    if (!stock && !custom) e.skuNo = true;
     if (num(l.qty) < 1 || (stock && wanted.get(l.skuNo) > stock.available)) e.qty = true;
     if (num(l.netWeight) <= 0) e.netWeight = true;
     if (num(l.selling) <= 0) e.selling = true;
@@ -473,7 +475,7 @@ function SalesInvoiceModal({
                         <ComboBox placeholder="SKU…" value={l.skuNo} onChange={(v) => changeLine(i, { skuNo: v })}
                           options={skuOptions} aria-label="SKU" />
                         <small className={s || !l.skuNo ? 'muted' : 'inv-error'}>
-                          {s ? `Stock ${s.available}` : l.skuNo ? 'Unknown SKU' : ' '}
+                          {s ? `Stock ${s.available}` : l.skuNo ? 'Unknown SKU' : header.orderNo ? 'Custom · no SKU' : ' '}
                         </small>
                       </td>
                       {textCell('description', 'Description', 'AVORI KIDS BRACELET', 200, 'so-desc')}

@@ -422,3 +422,9 @@
   gap: 10px;
   min-width: 170px;
 }
+
+/* Sales made to order (no SKU). */
+.so-badge.so-custom {
+  color: #8a6a1f;
+  background: #f6edd6;
+}
