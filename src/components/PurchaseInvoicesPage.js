@@ -4,6 +4,7 @@ import { alertDialog, confirmDialog } from './ConfirmDialog';
 import { printTags } from '../utils/productTag';
 import Icon from './Icon';
 import PhotoThumb from './PhotoThumb';
+import SelectBox from './SelectBox';
 import { deletePurchaseInvoice, deletePurchaseItem, toItemRows } from '../utils/draftInvoices';
 import { calcInvoiceItem, calcInvoiceTotals } from '../utils/invoiceCalc';
 import { formatAmount, formatWeight, num } from '../utils/purchaseCalc';
@@ -31,6 +32,8 @@ function PurchaseInvoicesPage({
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [groupBy, setGroupBy] = useState('all');
+  // Item view: only the pieces of one category ('' = every category).
+  const [category, setCategory] = useState('');
   // Invoice ids whose items are shown under their row in the Invoices view.
   const [expanded, setExpanded] = useState(() => new Set());
   const toggleExpanded = (id) => setExpanded((prev) => {
@@ -42,9 +45,14 @@ function PurchaseInvoicesPage({
 
   const q = search.trim().toLowerCase();
 
+  const categories = useMemo(
+    () => [...new Set(toItemRows(drafts).map((r) => r.category).filter(Boolean))].sort((a, b) => a.localeCompare(b)),
+    [drafts]);
+
   const rows = useMemo(() => toItemRows(drafts).filter((r) => inRange(r.purchaseDate, from, to)
+    && (!category || r.category === category)
     && (!q || [r.skuNo, r.category, r.collection, r.supplierName]
-      .some((v) => v && v.toLowerCase().includes(q)))), [drafts, from, to, q]);
+      .some((v) => v && v.toLowerCase().includes(q)))), [drafts, from, to, q, category]);
 
   const invoices = useMemo(() => drafts.filter((d) => inRange(d.purchaseDate, from, to)
     && (!q || [d.supplierName, d.supplierInvoiceNo, ...d.items.map((i) => i.skuNo)]
@@ -142,6 +150,20 @@ function PurchaseInvoicesPage({
             <span className="muted">to</span>
             <input type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
           </div>
+          {view === 'items' && (
+            <div className="pi-category">
+              <Icon name="folder" size={15} />
+              <span>Category:</span>
+              <SelectBox value={category} options={categories} placeholder="Select category" className="pi-cat-pick"
+                aria-label="Category" onChange={setCategory} />
+              {category && (
+                <button type="button" className="pi-cat-clear" title="Show every category" aria-label="Clear category"
+                  onClick={() => setCategory('')}>
+                  <Icon name="close" size={13} />
+                </button>
+              )}
+            </div>
+          )}
           {view === 'items' && (
             <div className="pi-group">
               <span>Group by:</span>

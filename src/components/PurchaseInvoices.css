@@ -404,3 +404,34 @@
 .pi-sub-table tbody tr:last-child td {
   border-bottom: 0;
 }
+
+/* Item view: pick one category (only the categories, no "All" entry; the x clears it). */
+.pi-category {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pi-category .sb-btn.pi-cat-pick {
+  min-width: 190px;
+}
+
+.pi-cat-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.pi-cat-clear:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}

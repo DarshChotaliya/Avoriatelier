@@ -1,6 +1,8 @@
 // QR tags for purchased pieces. The QR holds a link to the piece's public page (/p/<SKU>), which shows the piece and
 // its metal value in every quality at today's rate — nothing private.
-import logo from '../assets/avori-logo-black.png';
+// The tag logo is the same wordmark with its strokes grown by a hair (see src/assets): the normal logo's hairline serifs
+// are thinner than a printer dot and came out faint, but a 1-bit cut-out of it lost the letter shapes.
+import logo from '../assets/avori-logo-tag.png';
 import { PUBLIC_SITE_URL } from '../constants/company';
 import qrcode from 'qrcode-generator';
 import { formatWeight } from './purchaseCalc';
@@ -15,23 +17,127 @@ export const tagOrigin = (loc = window.location) => (isPrivateHost(loc.hostname)
 
 export const productUrl = (skuNo, origin = tagOrigin()) => `${origin}/p/${encodeURIComponent(skuNo)}`;
 
+/**
+ * What a tag's QR holds: the same address in capitals. Capitals, digits and  : / . -  fit the QR alphanumeric mode,
+ * which packs 42 characters into the 25 x 25 version (the mixed-case address needs 29 x 29). Fewer, bigger modules
+ * print and scan far better on a 12 mm label; hosts and the /p/ page ignore the case.
+ */
+export const tagQrText = (skuNo, origin = tagOrigin()) => productUrl(skuNo, origin).toUpperCase();
+
 /** SKU from a /p/<SKU> address, or null for any other page. */
 export const skuFromPath = (path = window.location.pathname) => {
-  const m = /^\/p\/([^/]+)\/?$/.exec(path);
+  const m = /^\/p\/([^/]+)\/?$/i.exec(path); // a tag QR holds the address in capitals (see tagQrText)
   return m ? decodeURIComponent(m[1]) : null;
 };
 
-/** QR code as an SVG string (black squares, no margin; it scales to any size). */
+/**
+ * QR code as an SVG string (black squares; it scales to any size). It carries its own white quiet zone of 2 modules
+ * all round, so it is centred in whatever box it sits in and a scanner finds its edges even next to a fold line or
+ * the logo. Error correction L keeps the code small (fewer, bigger modules) for a tiny label.
+ */
 export function qrSvg(text) {
-  const qr = qrcode(0, 'M');
-  qr.addData(text);
+  const qr = qrcode(0, 'L');
+  qr.addData(text, /^[0-9A-Z $%*+\-./:]+$/.test(text) ? 'Alphanumeric' : 'Byte');
   qr.make();
   const n = qr.getModuleCount();
   let path = '';
   for (let r = 0; r < n; r += 1) {
     for (let c = 0; c < n; c += 1) if (qr.isDark(r, c)) path += `M${c} ${r}h1v1h-1z`;
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges"><path d="${path}"/></svg>`;
+  const quiet = 2;
+  const side = n + quiet * 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${side} ${side}" shape-rendering="crispEdges">`
+    + `<rect width="${side}" height="${side}" fill="#fff"/><path transform="translate(${quiet} ${quiet})" d="${path}"/></svg>`;
+}
+
+/**
+ * Pixels per QR module in the tag's QR picture: 3, the 3 dots a module gets on a 203 dpi label printer, so the picture
+ * (27 x 3 = 81 px for 10.125 mm) is printed 1:1 and the driver never has to resample it into grey dots.
+ */
+const QR_PX = 3;
+/** White modules round the QR picture. 1 (the label itself is white round it) leaves more of the 12 mm for moving it up. */
+const QR_QUIET = 1;
+
+/**
+ * The tag's QR as a PNG data URL (null where there is no canvas). A tag prints through the printer driver's rasteriser,
+ * which smudges the many thin shapes of a vector QR; one pre-drawn bitmap is only scaled, so its square modules stay
+ * sharp (the same approach as the Carat Quest tags). 2 white modules all round are the quiet zone.
+ */
+export function qrPng(text) {
+  try {
+    const qr = qrcode(0, 'L');
+    qr.addData(text, /^[0-9A-Z $%*+\-./:]+$/.test(text) ? 'Alphanumeric' : 'Byte');
+    qr.make();
+    const n = qr.getModuleCount();
+    const quiet = QR_QUIET;
+    const side = (n + quiet * 2) * QR_PX;
+    const canvas = document.createElement('canvas');
+    canvas.width = side;
+    canvas.height = side;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, side, side);
+    ctx.fillStyle = '#000';
+    for (let r = 0; r < n; r += 1) {
+      for (let c = 0; c < n; c += 1) if (qr.isDark(r, c)) ctx.fillRect((c + quiet) * QR_PX, (r + quiet) * QR_PX, QR_PX, QR_PX);
+    }
+    return canvas.toDataURL('image/png');
+  } catch {
+    return null;
+  }
+}
+
+/** The QR as markup for a tag: the PNG, or the vector one when there is no canvas. */
+const qrMarkup = (text) => {
+  const png = qrPng(text);
+  return png ? `<img src="${png}" alt="QR">` : qrSvg(text);
+};
+
+/**
+ * The lines of text drawn as one solid-black bold picture (about 1200 dpi). Small live text prints light on a thermal
+ * head, because its anti-aliased grey edges are dots the printer never fires; a pre-drawn black bitmap prints dark.
+ * Returns { url, w, h } (w, h in mm) or null where there is no canvas.
+ */
+export function textImage(lines) {
+  try {
+    const dpmm = 48;
+    const px = (pt) => pt * 0.35278 * dpmm;
+    const gap = 0.5 * dpmm; // space between the ink of two lines
+    const pad = 0.3 * dpmm;
+    const font = (pt) => `700 ${px(pt)}px Arial, Helvetica, sans-serif`;
+    const canvas = document.createElement('canvas');
+    let ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    // Measure the ink of every line (not the font's em box): the lines all start at the same left edge, like the Carat
+    // Quest tags, and the block has the same margin above its first line as below its last.
+    ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'left';
+    const m = lines.map((l) => {
+      ctx.font = font(l.pt);
+      const t = ctx.measureText(l.text);
+      return {
+        ...l, left: t.actualBoundingBoxLeft, ink: t.actualBoundingBoxLeft + t.actualBoundingBoxRight,
+        up: t.actualBoundingBoxAscent, down: t.actualBoundingBoxDescent,
+      };
+    });
+    const widest = Math.max(...m.map((l) => l.ink));
+    canvas.width = Math.ceil(widest + pad * 2);
+    canvas.height = Math.ceil(pad * 2 + m.reduce((sum, l) => sum + l.up + l.down, 0) + gap * (m.length - 1));
+    ctx = canvas.getContext('2d'); // resizing resets the context
+    ctx.fillStyle = '#000';
+    ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'left';
+    let y = pad;
+    m.forEach((l) => {
+      ctx.font = font(l.pt);
+      ctx.fillText(l.text, pad + l.left, y + l.up);
+      y += l.up + l.down + gap;
+    });
+    return { url: canvas.toDataURL('image/png'), w: canvas.width / dpmm, h: canvas.height / dpmm };
+  } catch {
+    return null;
+  }
 }
 
 /** Metal line on the tag, e.g. "925 STERLING SILVER" or "18KT GOLD". */
@@ -63,22 +169,37 @@ const TAG_CSS = `
   body.flag .bf, body.butterfly .fl { display: none; }
   .qr { flex: none; }
   .qr svg { width: 100%; height: 100%; display: block; }
+  .qr img { width: 100%; height: 100%; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
 
   .bf { width: 81mm; height: 12mm; }
-  .half { width: 29mm; height: 12mm; flex: none; display: flex; align-items: center; }
-  .front { justify-content: space-between; padding: 0 1.5mm 0 2.5mm; }
-  .brand { width: 13mm; height: auto; flex: none; display: block; }
-  .bf .front .brand, .bf .front .qr { transform: rotate(180deg); }
-  .bf .qr { width: 10.5mm; height: 10.5mm; }
-  .fold { width: 0; height: 12mm; flex: none; border-left: 0.35mm dashed #000; }
-  .back { flex-direction: column; justify-content: center; align-items: flex-start; gap: 0.3mm; padding: 0 2mm;
-    transform: rotate(180deg); font-size: 6.5pt; line-height: 1.15; white-space: nowrap; }
-  .back b { font-size: 8.5pt; letter-spacing: 0.02em; }
+  /* Fixed position, found right on the label printer by trying: everything (logo, QR and text together, so they stay
+     level) sits 0.5 mm above the middle of the 12 mm page. The Carat Quest tags lift theirs by 0.75 mm the same way. */
+  .bf > * { position: relative; top: -0.5mm; }
+  /* Each half of the folded tag is 27 mm, like the Carat Quest tags that print right on this printer. */
+  .half { width: 27mm; height: 12mm; flex: none; display: flex; align-items: center; }
+  /* Printed test: the logo ran up to the outer edge of the label (1 mm) where the Carat Quest tag keeps about 4 mm. The
+     logo is smaller and starts 3.5 mm in; the QR then sits 1.4 mm after it, with its own white margin to the fold. */
+  .front { justify-content: flex-start; gap: 0.9mm; padding: 0 0 0 2mm; }
+  .brand { width: 12.5mm; height: auto; flex: none; display: block; }
+  /* 27 modules (25 + 1 white module each side), 9.07 mm: the QR itself is 8.4 mm. Printed test (client photo): the label is
+     12.4 mm tall but the driver starts the 12 mm page about 1.8 mm below its top edge, so the part of the page that lands
+     on the label runs from -1.8 to 10.6 mm and its middle is 4.3 mm; a 9.4 mm QR cannot be centred there (the page
+     cannot be printed above 0), an 8.4 mm one can. */
+  .bf .qr { width: 9.07mm; height: 9.07mm; }
+  /* The fold line as on the Carat Quest tags: 10 mm tall, 0.5 mm dashed. */
+  .fold { width: 0; height: 10mm; flex: none; border-left: 0.5mm dashed #000; }
+  /* The details, bold and centred in the half, turned 180° so they read the right way once folded. They are one
+     solid-black picture (see textImage); the live text below is only the fallback. */
+  .back { justify-content: center; }
+  .details { display: flex; flex-direction: column; align-items: flex-start; gap: 0.3mm; flex: none;
+    transform: rotate(180deg); font-size: 6.6pt; font-weight: 700; line-height: 1.15; white-space: nowrap; }
+  .details b { font-size: 8.4pt; letter-spacing: 0.02em; }
+  .details img { display: block; }
   .tail { flex: 1; height: 12mm; }
 
   .fl { width: var(--w); height: var(--h); justify-content: space-between; gap: 1mm; padding: 0.8mm 1.2mm 0.8mm 2mm; }
   .fl-text { display: flex; flex-direction: column; justify-content: center; min-width: 0; height: 100%;
-    font-size: calc(var(--h) * 0.17); line-height: 1.15; white-space: nowrap; letter-spacing: 0.03em; }
+    font-size: calc(var(--h) * 0.17); font-weight: 700; line-height: 1.15; white-space: nowrap; letter-spacing: 0.03em; }
   .fl-brand { margin-top: 0.7mm; height: calc(var(--h) * 0.19); width: auto; align-self: flex-start; display: block; }
   .fl .qr { width: calc(var(--h) - 1.6mm); height: calc(var(--h) - 1.6mm); }
 
@@ -148,18 +269,23 @@ const TAG_SCRIPT = `
 export function printTags(items, metalTypes = []) {
   // The preview opens in a blank window, so the logo needs its full address.
   const logoUrl = new URL(logo, window.location.href).href;
+  // SKU, weight and metal of a butterfly tag's back half.
+  const detailsBlock = (it) => {
+    const metal = metalLabel(it.metalType, metalTypes);
+    const weight = `Wt: ${formatWeight(it.netWeight)} g`;
+    const img = textImage([{ text: it.skuNo, pt: 8.4 }, { text: weight, pt: 6.6 }, { text: metal, pt: 5.6 }]);
+    return img
+      ? `<div class="details"><img src="${img.url}" style="width:${img.w.toFixed(2)}mm;height:${img.h.toFixed(2)}mm" alt=""></div>`
+      : `<div class="details"><b>${escape(it.skuNo)}</b><span>${escape(weight)}</span><span>${escape(metal)}</span></div>`;
+  };
   const butterfly = items.map((it) => `
     <div class="tag bf">
       <div class="half front">
         <img class="brand" src="${logoUrl}" alt="AVORI">
-        <span class="qr">${qrSvg(productUrl(it.skuNo))}</span>
+        <span class="qr">${qrMarkup(tagQrText(it.skuNo))}</span>
       </div>
       <div class="fold"></div>
-      <div class="half back">
-        <b>${escape(it.skuNo)}</b>
-        <span>Wt: ${formatWeight(it.netWeight)} g</span>
-        <span>${escape(metalLabel(it.metalType, metalTypes))}</span>
-      </div>
+      <div class="half back">${detailsBlock(it)}</div>
       <div class="tail"></div>
     </div>`).join('');
   const flag = items.map((it) => `
@@ -170,7 +296,7 @@ export function printTags(items, metalTypes = []) {
         <span>${escape(metalShort(it.metalType))}</span>
         <img class="fl-brand" src="${logoUrl}" alt="AVORI">
       </div>
-      <span class="qr">${qrSvg(productUrl(it.skuNo))}</span>
+      <span class="qr">${qrMarkup(tagQrText(it.skuNo))}</span>
     </div>`).join('');
   const count = `${items.length} tag${items.length === 1 ? '' : 's'}`;
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>Print ${count}</title>
