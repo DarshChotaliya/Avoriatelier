@@ -179,13 +179,15 @@ const TAG_CSS = `
   .half { width: 27mm; height: 12mm; flex: none; display: flex; align-items: center; }
   /* Printed test: the logo ran up to the outer edge of the label (1 mm) where the Carat Quest tag keeps about 4 mm. The
      logo is smaller and starts 3.5 mm in; the QR then sits 1.4 mm after it, with its own white margin to the fold. */
-  .front { justify-content: flex-start; gap: 0.9mm; padding: 0 0 0 2mm; }
+  .front { justify-content: flex-start; gap: 0; padding: 0 0 0 2mm; }
   .brand { width: 12.5mm; height: auto; flex: none; display: block; }
   /* 27 modules (25 + 1 white module each side), 9.07 mm: the QR itself is 8.4 mm. Printed test (client photo): the label is
      12.4 mm tall but the driver starts the 12 mm page about 1.8 mm below its top edge, so the part of the page that lands
      on the label runs from -1.8 to 10.6 mm and its middle is 4.3 mm; a 9.4 mm QR cannot be centred there (the page
      cannot be printed above 0), an 8.4 mm one can. */
-  .bf .qr { width: 9.07mm; height: 9.07mm; }
+  /* Printed test (client photo): the QR touched the logo and was far from the fold. Auto side margins put it in the middle
+     of the space between the logo and the fold line (about 1.7 mm each side, plus its own white margin). */
+  .bf .qr { width: 9.07mm; height: 9.07mm; margin: 0 auto; }
   /* The fold line as on the Carat Quest tags: 10 mm tall, 0.5 mm dashed. */
   .fold { width: 0; height: 10mm; flex: none; border-left: 0.5mm dashed #000; }
   /* The details, bold and centred in the half, turned 180° so they read the right way once folded. They are one
