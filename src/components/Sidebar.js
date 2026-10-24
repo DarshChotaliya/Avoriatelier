@@ -1,4 +1,5 @@
 import Icon from './Icon';
+import { SHIVORA_URL, OTHER_COMPANIES, shivoraLink } from '../utils/shivora';
 
 // Every master is a tab inside the single "Masters" page. Customers have their own page in the sidebar
 // (they will later sign in on the website too), though they are stored like the other masters.
@@ -111,6 +112,12 @@ function Sidebar({ page, collapsed, onToggle, onNavigate, user, can, onChangePas
             aria-label="Change password">
             <Icon name="key" size={15} />
           </button>
+          {SHIVORA_URL && OTHER_COMPANIES.map((co) => (
+            <a key={co.code} className="sb-acc-btn" href={shivoraLink(`/go/${co.code}`)}
+              title={`Switch to ${co.name}`} aria-label={`Switch to ${co.name}`}>
+              <Icon name="building" size={15} />
+            </a>
+          ))}
           <button type="button" className="sb-acc-btn" onClick={onLogout} title="Sign out" aria-label="Sign out">
             <Icon name="logout" size={15} />
           </button>

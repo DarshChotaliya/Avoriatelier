@@ -59,6 +59,8 @@ export const authApi = {
   status: () => request('/api/auth/status'),
   setup: (data) => request('/api/auth/setup', json('POST', data)),
   login: (username, password) => request('/api/auth/login', json('POST', { username, password })),
+  // One-minute pass from the Shivora portal
+  sso: (token) => request('/api/auth/sso', json('POST', { token })),
   logout: () => request('/api/auth/logout', { method: 'POST' }),
   me: () => request('/api/auth/me'),
   changePassword: (currentPassword, newPassword) =>

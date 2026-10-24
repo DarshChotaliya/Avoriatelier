@@ -50,6 +50,7 @@ public interface IUserService
     Task<bool> HasUsersAsync(CancellationToken ct);
     Task<AppUser> SetupOwnerAsync(SetupRequest request, CancellationToken ct);
     Task<AppUser> LoginAsync(string username, string password, CancellationToken ct);
+    Task<AppUser> SsoSignInAsync(string username, CancellationToken ct);
     Task<List<UserDto>> GetAllAsync(CancellationToken ct);
     Task<UserDto> SaveAsync(UserSaveRequest request, int currentUserId, CancellationToken ct);
     Task ChangePasswordAsync(int userId, ChangePasswordRequest request, CancellationToken ct);
@@ -186,6 +187,18 @@ public class UserService : IUserService
         SetPassword(user, r.NewPassword);
         user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>Sign-in vouched for by the Shivora portal (no password here): the named user, if active.</summary>
+    public async Task<AppUser> SsoSignInAsync(string username, CancellationToken ct)
+    {
+        var name = Normalize(username);
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Username == name, ct);
+        if (user is null || !user.IsActive)
+            throw new BusinessValidationException($"The Avori user '{name}' does not exist or is switched off.");
+        user.LastLoginAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+        return user;
     }
 
     public Task<AppUser?> FindActiveAsync(int id, CancellationToken ct) =>

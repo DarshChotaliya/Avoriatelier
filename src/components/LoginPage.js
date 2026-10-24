@@ -2,12 +2,13 @@ import { useState } from 'react';
 import Icon from './Icon';
 import { authApi } from '../api/erpApi';
 import './LoginPage.css';
+import { SHIVORA_URL, shivoraLink } from '../utils/shivora';
 
 /**
  * Sign-in screen. With `setup`, it creates the very first (Owner) account instead; the server only allows
  * that while no users exist.
  */
-function LoginPage({ setup = false, onSignedIn }) {
+function LoginPage({ setup = false, onSignedIn, notice = '' }) {
   const [form, setForm] = useState({ fullName: '', username: '', password: '', confirm: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -50,7 +51,7 @@ function LoginPage({ setup = false, onSignedIn }) {
               : 'Welcome back. Sign in to continue.'}
           </p>
 
-          {error && <div className="alert" role="alert">{error}</div>}
+          {(error || notice) && <div className="alert" role="alert">{error || notice}</div>}
 
           {setup && (
             <label className="lg-field">
@@ -88,6 +89,10 @@ function LoginPage({ setup = false, onSignedIn }) {
           <button type="submit" className="lg-submit" disabled={busy || !form.username || !form.password}>
             {busy ? 'Please wait…' : setup ? 'Create account' : 'Sign in'}
           </button>
+
+          {!setup && SHIVORA_URL && (
+            <a className="lg-shivora" href={shivoraLink('/?next=avori')}>Sign in with Shivora International →</a>
+          )}
         </form>
       </main>
     </div>

@@ -30,6 +30,7 @@ import { browserDataSummary, dismissBrowserData, importBrowserData } from './uti
 import { alertDialog, confirmDialog, DialogHost } from './components/ConfirmDialog';
 import Icon from './components/Icon';
 import LoginPage from './components/LoginPage';
+import { SHIVORA_URL, takeSsoToken } from './utils/shivora';
 import UsersPage from './components/UsersPage';
 import ChangePasswordModal from './components/ChangePasswordModal';
 import { authApi, quotationApi, skuSettingsApi, stockApi } from './api/erpApi';
@@ -69,6 +70,9 @@ const pageFromAddress = () => {
   const name = window.location.hash.replace(/^#\/?/, '');
   return PAGES.has(name) ? name : 'dashboard';
 };
+
+// The Shivora portal sign-in in progress, if this page was opened with a pass.
+let ssoAttempt = null;
 
 function App() {
   const [page, setPage] = useState(pageFromAddress);
@@ -115,6 +119,8 @@ function App() {
   const [stock, setStock] = useState([]);
   // Signed-in user: { checking } while asking the server, then { user } or { needsSetup }.
   const [auth, setAuth] = useState({ checking: true, user: null, needsSetup: false });
+  // Shown on the sign-in screen when a Shivora portal pass did not work
+  const [ssoError, setSsoError] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
   const can = useCallback((permission) => Boolean(auth.user?.permissions.includes(permission)), [auth.user]);
   const [orders, setOrders] = useState([]);
@@ -163,7 +169,18 @@ function App() {
   // Who is signed in? (cookie session) — otherwise show sign-in, or first-time setup when there are no users.
   useEffect(() => {
     let cancelled = false;
-    authApi.me()
+    // Sent here by the Shivora portal: swap its pass for an Avori session first.
+    // Kept outside the component: a pass works once, and React may run this effect twice.
+    if (!ssoAttempt) {
+      const ssoToken = takeSsoToken();
+      if (ssoToken) {
+        ssoAttempt = authApi.sso(ssoToken)
+          .then((me) => { sessionStorage.setItem('avori_via_shivora', '1'); return me; })
+          .catch((e) => { setSsoError(e.message); return authApi.me(); });
+      }
+    }
+    const signIn = ssoAttempt || authApi.me();
+    signIn
       .then((me) => !cancelled && setAuth({ checking: false, user: me, needsSetup: false }))
       .catch(async () => {
         const status = await authApi.status().catch(() => ({ needsSetup: false }));
@@ -191,6 +208,11 @@ function App() {
 
   const logout = async () => {
     await authApi.logout().catch(() => {});
+    // Signed in through the portal: leaving here signs you out of every company.
+    // Signed in on the Avori screen: stays here, as before.
+    const viaShivora = sessionStorage.getItem('avori_via_shivora') === '1';
+    sessionStorage.removeItem('avori_via_shivora');
+    if (SHIVORA_URL && viaShivora) { window.location.href = `${SHIVORA_URL}/logout`; return; }
     setDialog(null);
     setDrafts([]);
     setSales([]);
@@ -509,7 +531,7 @@ function App() {
       </div>
     );
   }
-  if (!auth.user) return <LoginPage setup={auth.needsSetup} onSignedIn={signedIn} />;
+  if (!auth.user) return <LoginPage setup={auth.needsSetup} onSignedIn={signedIn} notice={ssoError} />;
 
   // A page this user may not open (e.g. after their role changed) falls back to a notice.
   const navLink = NAV_SECTIONS.flatMap((s) => s.links).find((l) => l.page === page);

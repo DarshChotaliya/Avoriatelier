@@ -43,6 +43,23 @@ public class AuthController : ControllerBase
         return UserService.ToMe(user);
     }
 
+    /// <summary>
+    /// Sign in with a one-minute pass from the Shivora International staff portal
+    /// (Auth/ShivoraSso.cs). 404 while Sso:Secret is not set.
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost("sso")]
+    public async Task<ActionResult<MeDto>> Sso(SsoRequest request, [FromServices] IConfiguration config, CancellationToken ct)
+    {
+        var secret = config["Sso:Secret"];
+        if (string.IsNullOrWhiteSpace(secret)) return NotFound();
+        var pass = ShivoraSso.Verify(request.Token, secret, "avori")
+            ?? throw new BusinessValidationException("This sign-in link has expired. Please open Avori again from the Shivora portal.");
+        var user = await _users.SsoSignInAsync(pass.Usr, ct);
+        await SignInAsync(user);
+        return UserService.ToMe(user);
+    }
+
     [AllowAnonymous]
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
@@ -127,3 +144,5 @@ public class StockController : ControllerBase
     [HttpGet]
     public Task<List<StockRowDto>> Get(CancellationToken ct) => _stock.GetAsync(ct);
 }
+
+public record SsoRequest(string? Token);
