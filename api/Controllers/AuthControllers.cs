@@ -60,6 +60,16 @@ public class AuthController : ControllerBase
         return UserService.ToMe(user);
     }
 
+    /// <summary>A one-minute pass for the Shivora portal, so "switch company" needs no portal password.</summary>
+    [Authorize]
+    [HttpPost("shivora-pass")]
+    public IActionResult ShivoraPass([FromServices] IConfiguration config)
+    {
+        var secret = config["Sso:Secret"];
+        if (string.IsNullOrWhiteSpace(secret) || string.IsNullOrEmpty(User.Identity?.Name)) return NotFound();
+        return Ok(new { token = ShivoraSso.CreateForPortal(secret, "avori", User.Identity.Name) });
+    }
+
     [AllowAnonymous]
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()

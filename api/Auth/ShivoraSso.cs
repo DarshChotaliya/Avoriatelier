@@ -43,6 +43,28 @@ public static class ShivoraSso
         return new Pass(Str("usr"), Str("by"));
     }
 
+    /// <summary>
+    /// A one-minute pass the other way: Avori tells the portal "this person is signed in here as
+    /// user X", so switching company needs no portal password. The portal accepts it only for a
+    /// portal account linked to that user.
+    /// </summary>
+    public static string CreateForPortal(string secret, string company, string erpUsername)
+    {
+        var payload = JsonSerializer.Serialize(new
+        {
+            aud = "shivora",
+            iss = company,
+            usr = erpUsername,
+            exp = DateTimeOffset.UtcNow.AddSeconds(60).ToUnixTimeSeconds(),
+            jti = Guid.NewGuid().ToString("N"),
+        });
+        var body = B64(Encoding.UTF8.GetBytes(payload));
+        using var h = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+        return body + "." + B64(h.ComputeHash(Encoding.ASCII.GetBytes(body)));
+    }
+
+    private static string B64(byte[] b) => Convert.ToBase64String(b).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+
     private static byte[] FromB64(string s)
     {
         s = s.Replace('-', '+').Replace('_', '/');
