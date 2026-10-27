@@ -1,0 +1,257 @@
+/* Print-tags dialog of a purchase invoice: all tags, or a custom pick. Colors come from the brand tokens in App.css. */
+
+.tg-modal {
+  width: 100%;
+}
+
+.tg-ask {
+  display: flex;
+  gap: 14px;
+}
+
+.tg-choice {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--brand);
+  text-align: center;
+  cursor: pointer;
+}
+
+.tg-choice:hover {
+  border-color: var(--gold);
+  background: var(--brand-light);
+}
+
+.tg-choice strong {
+  font-size: 15px;
+  color: var(--text, #1c2b28);
+}
+
+.tg-choice span {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.tg-custom {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tg-filter {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.tg-filter-label {
+  flex: none;
+  width: 66px;
+  padding-top: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tg-chip {
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text, #1c2b28);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tg-chip span {
+  margin-left: 4px;
+  opacity: 0.65;
+  font-weight: 500;
+}
+
+.tg-chip.on {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+.tg-searchrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tg-search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.tg-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  color: var(--text, #1c2b28);
+}
+
+.tg-ghost {
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text, #1c2b28);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tg-ghost:hover {
+  border-color: var(--brand);
+}
+
+.tg-list {
+  max-height: 46vh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.tg-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  border-top: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+
+.tg-row:first-child {
+  border-top: 0;
+}
+
+.tg-row.on {
+  background: var(--brand-light);
+}
+
+.tg-row input {
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+  accent-color: var(--brand);
+}
+
+.tg-sku {
+  min-width: 128px;
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tg-item {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.tg-wt {
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tg-none {
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.tg-tip {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.tg-tip b {
+  color: var(--text, #1c2b28);
+}
+
+.tg-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 28px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.tg-print {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--brand);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tg-print:disabled {
+  background: #8aa09b;
+  cursor: not-allowed;
+}
+
+@media (max-width: 560px) {
+  .tg-ask {
+    flex-direction: column;
+  }
+
+  .tg-filter {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .tg-filter-label {
+    width: auto;
+    padding-top: 0;
+  }
+}

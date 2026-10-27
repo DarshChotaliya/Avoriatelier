@@ -2,7 +2,6 @@ import { useState } from 'react';
 import Icon from './Icon';
 import { authApi } from '../api/erpApi';
 import './LoginPage.css';
-import { SHIVORA_URL, shivoraLink } from '../utils/shivora';
 
 /**
  * Sign-in screen. With `setup`, it creates the very first (Owner) account instead; the server only allows
@@ -89,10 +88,6 @@ function LoginPage({ setup = false, onSignedIn, notice = '' }) {
           <button type="submit" className="lg-submit" disabled={busy || !form.username || !form.password}>
             {busy ? 'Please wait…' : setup ? 'Create account' : 'Sign in'}
           </button>
-
-          {!setup && SHIVORA_URL && (
-            <a className="lg-shivora" href={shivoraLink('/?next=avori')}>Sign in with Shivora International →</a>
-          )}
         </form>
       </main>
     </div>

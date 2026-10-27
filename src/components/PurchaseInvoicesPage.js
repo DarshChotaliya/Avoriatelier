@@ -4,6 +4,7 @@ import { alertDialog, confirmDialog } from './ConfirmDialog';
 import { printTags } from '../utils/productTag';
 import Icon from './Icon';
 import PhotoThumb from './PhotoThumb';
+import InvoiceTagModal from './InvoiceTagModal';
 import SelectBox from './SelectBox';
 import { deletePurchaseInvoice, deletePurchaseItem, toItemRows } from '../utils/draftInvoices';
 import { calcInvoiceItem, calcInvoiceTotals } from '../utils/invoiceCalc';
@@ -32,6 +33,8 @@ function PurchaseInvoicesPage({
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [groupBy, setGroupBy] = useState('all');
+  // The invoice whose print-tags dialog is open (all tags, or a custom pick).
+  const [tagInvoice, setTagInvoice] = useState(null);
   // Item view: only the pieces of one category ('' = every category).
   const [category, setCategory] = useState('');
   // Invoice ids whose items are shown under their row in the Invoices view.
@@ -317,7 +320,7 @@ function PurchaseInvoicesPage({
                           <Icon name="eye" size={15} />
                         </button>
                         <button type="button" className="pi-action" title="Print QR tags for every item"
-                          aria-label="Print invoice tags" onClick={() => printTags(inv.items, metalTypes)}>
+                          aria-label="Print invoice tags" onClick={() => setTagInvoice(inv)}>
                           <Icon name="printer" size={15} />
                         </button>
                         {canEdit && (
@@ -408,6 +411,10 @@ function PurchaseInvoicesPage({
         </div>
         {view === 'items' ? itemPages.pager : invoicePages.pager}
       </div>
+      {tagInvoice && (
+        <InvoiceTagModal invoiceNo={tagInvoice.supplierInvoiceNo || `#${tagInvoice.id}`} items={tagInvoice.items}
+          onPrint={(list) => printTags(list, metalTypes)} onClose={() => setTagInvoice(null)} />
+      )}
     </div>
   );
 }

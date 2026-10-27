@@ -154,18 +154,3 @@
     width: 160px;
   }
 }
-
-/* Sign in through the Shivora International staff portal */
-.lg-shivora {
-  display: block;
-  margin-top: 12px;
-  padding: 11px 14px;
-  border: 1px solid #d9c38f;
-  border-radius: 10px;
-  background: #fffaf0;
-  color: #7a5b17;
-  font-weight: 600;
-  text-align: center;
-  text-decoration: none;
-}
-.lg-shivora:hover { background: #fdf3dc; }
