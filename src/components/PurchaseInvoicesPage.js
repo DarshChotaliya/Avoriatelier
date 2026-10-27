@@ -33,8 +33,8 @@ function PurchaseInvoicesPage({
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [groupBy, setGroupBy] = useState('all');
-  // The invoice whose print-tags dialog is open (all tags, or a custom pick).
-  const [tagInvoice, setTagInvoice] = useState(null);
+  // The print-tags dialog that is open (all tags, or a custom pick): { label, items } for one invoice or for every item.
+  const [tagDialog, setTagDialog] = useState(null);
   // Item view: only the pieces of one category ('' = every category).
   const [category, setCategory] = useState('');
   // Invoice ids whose items are shown under their row in the Invoices view.
@@ -166,6 +166,13 @@ function PurchaseInvoicesPage({
                 </button>
               )}
             </div>
+          )}
+          {view === 'items' && (
+            <button type="button" className="pi-print-tags" title="Print QR tags: all items, or pick by gender and category"
+              onClick={() => setTagDialog({ label: 'All items', items: toItemRows(drafts) })}>
+              <Icon name="printer" size={15} />
+              Print tags
+            </button>
           )}
           {view === 'items' && (
             <div className="pi-group">
@@ -320,7 +327,8 @@ function PurchaseInvoicesPage({
                           <Icon name="eye" size={15} />
                         </button>
                         <button type="button" className="pi-action" title="Print QR tags for every item"
-                          aria-label="Print invoice tags" onClick={() => setTagInvoice(inv)}>
+                          aria-label="Print invoice tags"
+                          onClick={() => setTagDialog({ label: inv.supplierInvoiceNo || `#${inv.id}`, items: inv.items })}>
                           <Icon name="printer" size={15} />
                         </button>
                         {canEdit && (
@@ -411,9 +419,9 @@ function PurchaseInvoicesPage({
         </div>
         {view === 'items' ? itemPages.pager : invoicePages.pager}
       </div>
-      {tagInvoice && (
-        <InvoiceTagModal invoiceNo={tagInvoice.supplierInvoiceNo || `#${tagInvoice.id}`} items={tagInvoice.items}
-          onPrint={(list) => printTags(list, metalTypes)} onClose={() => setTagInvoice(null)} />
+      {tagDialog && (
+        <InvoiceTagModal invoiceNo={tagDialog.label} items={tagDialog.items}
+          onPrint={(list) => printTags(list, metalTypes)} onClose={() => setTagDialog(null)} />
       )}
     </div>
   );

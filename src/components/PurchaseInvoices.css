@@ -435,3 +435,24 @@
   color: var(--danger);
   border-color: var(--danger);
 }
+
+/* Item view: print tags of every item (the dialog filters by gender and category). */
+.pi-print-tags {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--brand);
+  border-radius: 10px;
+  background: var(--brand);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pi-print-tags:hover {
+  background: var(--brand-dark);
+}
