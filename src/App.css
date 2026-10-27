@@ -832,8 +832,10 @@ input.invalid {
 }
 
 /* ---------- Collapsed sidebar opens on hover (over the page, without moving it) ---------- */
+/* No (hover: hover) condition: a touch laptop, a remote desktop or a tablet-mode PC can report no hover and then the
+   sidebar never opened; a tap now opens it the same way. */
 
-@media (min-width: 901px) and (hover: hover) {
+@media (min-width: 901px) {
   .sidebar-collapsed .sidebar:hover {
     width: var(--sidebar-w);
     box-shadow: 8px 0 28px rgba(0, 0, 0, 0.25);
@@ -895,7 +897,7 @@ input.invalid {
   }
 }
 
-@media (min-width: 901px) and (hover: hover) {
+@media (min-width: 901px) {
   .sidebar-collapsed .sidebar:hover .sidebar-mark {
     display: none;
   }
@@ -1195,7 +1197,7 @@ input[type='date']::-webkit-datetime-edit {
   height: 36px;
 }
 
-@media (min-width: 901px) and (hover: hover) {
+@media (min-width: 901px) {
   .sidebar-collapsed .sidebar:hover .sidebar-brand {
     padding: 18px 48px 14px;
   }
@@ -1227,7 +1229,7 @@ input[type='date']::-webkit-datetime-edit {
   }
 }
 
-@media (min-width: 901px) and (hover: hover) {
+@media (min-width: 901px) {
   .sidebar-collapsed .sidebar:hover .sidebar-brand {
     height: 72px;
     padding: 0 48px;
@@ -1241,7 +1243,7 @@ input[type='date']::-webkit-datetime-edit {
   padding-right: 52px;
 }
 
-@media (min-width: 901px) and (hover: hover) {
+@media (min-width: 901px) {
   .sidebar-collapsed .sidebar:hover .sidebar-brand {
     justify-content: flex-start;
     padding: 0 52px 0 24px;
@@ -1284,7 +1286,7 @@ input[type='date']::-webkit-datetime-edit {
   }
 }
 
-@media (min-width: 901px) and (hover: hover) {
+@media (min-width: 901px) {
   .sidebar-collapsed .sidebar:hover .sidebar-footer-toggle .sidebar-toggle {
     justify-content: flex-start;
     padding: 0 10px;
